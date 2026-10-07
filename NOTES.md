@@ -7,7 +7,6 @@ AI-powered congressional bill tracker + HTML newsletter.
 ## October 7 - Current-Congress sync, Anthropic setup
 
 **1. Created a superuser** and confirmed all 3 models (Member, Bill, Action) in the Django admin.
-![alt text](</BillBrief/docs/images/admin.png>)
 ![Django admin showing the Bill, Member, and Action models](docs/images/admin.png)
 
 **2. Scoped the sync to the current (119th) Congress**
@@ -38,7 +37,7 @@ django-admin startproject config .   # "config" = settings package; "." keeps ma
 python manage.py startapp bills      # the app
 python manage.py runserver
 ```
-![alt text](/BillBrief/docs/images/installation_success.png)
+![Installation Success](docs/images/installation_success.png)
 
 **2. Pushed progress**
 
@@ -108,7 +107,8 @@ python manage.py sync_bills --days 3 --limit 5
 **Result:** sync worked: 5 bills saved to Postgres with actions.
 
 - Finding: all 5 were from the **117th Congress**. The `fromDateTime` filter returns bills whose *records* were recently updated, which includes old bills. Next step: scope the sync to the current (119th) Congress.
-![alt text](/BillBrief/docs/images/output_example.png)
+![Future example visual](docs/images/output_example.png)
+
 
 ---
 
