@@ -6,9 +6,8 @@ AI-powered congressional bill tracker + HTML newsletter.
 
 ## October 7 - Current-Congress sync, Anthropic setup
 
-- Created superuser. In admin pangel can see all 3 models. 
 **1. Created a superuser** and confirmed all 3 models (Member, Bill, Action) in the Django admin.
-![alt text](/BillBrief/docs/images/admin.png)
+![alt text](</BillBrief/docs/images/admin.png>)
 
 **2. Scoped the sync to the current (119th) Congress**
 
