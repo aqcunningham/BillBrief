@@ -10,6 +10,7 @@ psycopg = {extras = ["binary"], version = "*"}
 requests = "*"
 dj-database-url = "*"
 python-dotenv = "*"
+anthropic = "*"
 
 [dev-packages]
 
