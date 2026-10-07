@@ -8,6 +8,7 @@ AI-powered congressional bill tracker + HTML newsletter.
 
 **1. Created a superuser** and confirmed all 3 models (Member, Bill, Action) in the Django admin.
 ![alt text](</BillBrief/docs/images/admin.png>)
+![Django admin showing the Bill, Member, and Action models](docs/images/admin.png)
 
 **2. Scoped the sync to the current (119th) Congress**
 
