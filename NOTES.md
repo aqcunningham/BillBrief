@@ -6,9 +6,24 @@ AI-powered congressional bill tracker + HTML newsletter.
 
 ## October 7 — TODO
 
-- [ ] Create superuser and check bills in the Django admin
-- [ ] Add `--congress` argument to `sync_bills` (default 119) so the sync only pulls the current Congress
-- [ ] Re-run the sync, confirm 119th Congress bills, commit
+- Created superuser. In admin pangel can see all 3 models. 
+**1. Created a superuser** and confirmed all 3 models (Member, Bill, Action) in the Django admin.
+![alt text](image.png)
+
+**2. Scoped the sync to the current (119th) Congress**
+
+- Problem: the sync returned 117th Congress bills (2021–22). The `fromDateTime` filter matches bills whose *records* were recently updated, including old bills touched by Congress.gov's data cleanup.
+- Fix: added a `--congress` option (default 119) and changed the request from `/bill` to `/bill/{congress}`:
+
+    parser.add_argument("--congress", type=int, default=119, help="Congress number")
+
+- Result: the sync now returns only current bills (HR 45, HR 31, HR 211, HR 220, HR 227).
+- Lesson: "updated" in an API often means the database record changed, not that something happened in Congress. Change tracking should rely on the Action table instead.
+
+**3. Set up the Claude API**
+
+- Created an API key in the Claude Console, named `billbrief-local` (stored in `.env` only)
+- Installed the SDK: `pipenv install anthropic`
 
 ---
 
