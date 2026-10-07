@@ -11,7 +11,6 @@ from bills.models import Action, Bill, Member
 
 API_BASE = "https://api.congress.gov/v3"
 
-
 class CongressClient:
     """Thin wrapper around the Congress.gov v3 API."""
 
@@ -31,6 +30,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--days", type=int, default=3, help="Look back N days")
         parser.add_argument("--limit", type=int, default=50, help="Max bills to sync")
+        parser.add_argument("--congress", type=int, default=119, help="Congress number")
 
     def handle(self, *args, **opts):
         api_key = os.environ.get("CONGRESS_API_KEY")
@@ -40,7 +40,8 @@ class Command(BaseCommand):
         client = CongressClient(api_key)
         since = datetime.now(timezone.utc) - timedelta(days=opts["days"])
         listing = client.get(
-            "/bill",
+            # "/bill",
+            f"/bill/{opts['congress']}",
             fromDateTime=since.strftime("%Y-%m-%dT%H:%M:%SZ"),
             limit=opts["limit"],
         )
