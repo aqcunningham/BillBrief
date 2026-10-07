@@ -4,7 +4,7 @@ AI-powered congressional bill tracker + HTML newsletter.
 
 ---
 
-## October 7 — To do
+## October 7 — TODO
 
 - [ ] Create superuser and check bills in the Django admin
 - [ ] Add `--congress` argument to `sync_bills` (default 119) so the sync only pulls the current Congress
