@@ -24,6 +24,39 @@ AI-powered congressional bill tracker + HTML newsletter.
 - Created an API key in the Claude Console, named `billbrief-local` (stored in `.env` only)
 - Installed the SDK: `pipenv install anthropic`
 
+**4. Brief model and editorial workflow**
+
+- Added a `Brief` model linked to `Bill`: summary, why it matters, who's affected, stage, `kind` (overview or what changed), and `status` (draft / approved / rejected)
+- Audit fields: `reviewed_by`, `reviewed_at`, `model_name`
+- Admin actions to approve or reject briefs in bulk; list shows ID, kind, and status
+
+![Approving briefs in the admin](docs/images/approving_brief.png)
+
+**5. generate_briefs command (Claude API)**
+
+- Sends one bill to Claude with its title, sponsor, CRS summary, and action timeline; saves an overview brief and a "what changed" brief as drafts
+- Structured output via a `save_brief` tool schema, so every brief has the same fields
+
+![Terminal raw versin of bill brief](docs/images/billbrief_sample)
+
+Iterating on S. 283 (Illegal Red Snapper and Tuna Enforcement Act, presented to the President Oct 5):
+
+1. Error: `tool_choice` type "tool" isn't supported for this model → switched to `auto`, with the system prompt requiring the tool call plus a guard if none comes back.
+2. Draft 1: accurate, but long sentences, jargon ("IUU"), crammed labels → tightened the schema descriptions (word limits, short labels, spell out acronyms).
+3. Draft 2: "What's next" told readers "the input does not give a deadline" → the code now supplies the constitutional 10-day rule when a bill reaches the President; the prompt forbids mentioning the input.
+4. Draft 3: stage regressed to "In committee" → printed the exact context in the Django shell to debug; added the latest action near the top of the input.
+5. Draft 4: correct. Approved briefs 7 and 8, rejected 1–6.
+
+Principles:
+- The code supplies the facts; the model only writes.
+- When AI output looks wrong, check the input first.
+- Edits to the brief happen on the edit page; approval happens through admin actions so the audit trail is recorded.
+
+![Editing a brief](docs/images/brief_edit.png)
+
+**6. Admin display**
+
+- Times showed in UTC; set `TIME_ZONE = "America/Los_Angeles"` (the database still stores UTC)
 ---
 
 ## October 6 — Environment, Postgres, first sync
