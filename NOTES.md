@@ -37,7 +37,7 @@ AI-powered congressional bill tracker + HTML newsletter.
 - Sends one bill to Claude with its title, sponsor, CRS summary, and action timeline; saves an overview brief and a "what changed" brief as drafts
 - Structured output via a `save_brief` tool schema, so every brief has the same fields
 
-![Terminal raw versin of bill brief](docs/images/billbrief_sample)
+![Terminal raw versin of bill brief](docs/images/billbrief_sample.png)
 
 Iterating on S. 283 (Illegal Red Snapper and Tuna Enforcement Act, presented to the President Oct 5):
 
