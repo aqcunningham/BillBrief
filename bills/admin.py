@@ -8,8 +8,8 @@ admin.site.register(Action)
 
 @admin.register(Brief)
 class BriefAdmin(admin.ModelAdmin):
-    list_display = ["bill", "status", "stage", "created_at", "reviewed_by"]
-    list_filter = ["status", "policy_area"]
+    list_display = ["id","bill", "kind", "status", "stage", "created_at", "reviewed_by"]
+    list_filter = ["status", "kind", "policy_area"]
     readonly_fields = ["reviewed_by", "reviewed_at", "model_name", "created_at"]
     actions = ["approve", "reject"]
 
