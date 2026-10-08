@@ -77,13 +77,16 @@ class Action(models.Model):
 class Brief(models.Model):
     """An AI-drafted, plain-language brief for a bill.
     Briefs start as drafts and publish only after editor approval."""
-
+    class Kind(models.TextChoices):
+        OVERVIEW = "overview", "Overview"
+        CHANGE = "change", "What changed"
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
 
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="briefs")
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.OVERVIEW)
     summary = models.TextField()
     why_it_matters = models.TextField()
     who_is_affected = models.JSONField(default=list)
@@ -103,6 +106,7 @@ class Brief(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-
+    
     def __str__(self):
         return f"Brief for {self.bill} ({self.get_status_display()})"
+    
