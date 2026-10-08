@@ -73,3 +73,36 @@ class Action(models.Model):
 
     def __str__(self):
         return f"{self.action_date}: {self.text[:60]}"
+
+class Brief(models.Model):
+    """An AI-drafted, plain-language brief for a bill.
+    Briefs start as drafts and publish only after editor approval."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="briefs")
+    summary = models.TextField()
+    why_it_matters = models.TextField()
+    who_is_affected = models.JSONField(default=list)
+    policy_area = models.CharField(max_length=200, blank=True)
+    stage = models.CharField(max_length=100, blank=True)
+
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+    reviewed_by = models.ForeignKey(
+        "auth.User", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    model_name = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Brief for {self.bill} ({self.get_status_display()})"
