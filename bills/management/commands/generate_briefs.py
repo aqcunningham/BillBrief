@@ -28,18 +28,18 @@ BRIEF_TOOL = {
         "type": "object",
         "properties": {
             "summary": {
-                "type": "string",
-                "description": "One or two sentences: what the bill does, in plain language.",
-            },
-            "why_it_matters": {
-                "type": "string",
-                "description": "One or two sentences on why a policy reader should care.",
-            },
-            "who_is_affected": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "2 to 4 groups, sectors, or regions directly affected.",
-            },
+    "type": "string",
+    "description": "At most 2 short sentences (under 45 words total): what the bill does, in plain language. Spell out acronyms.",
+},
+"why_it_matters": {
+    "type": "string",
+    "description": "1 to 2 sentences on the real-world impact for a policy reader. Do not repeat the summary.",
+},
+"who_is_affected": {
+    "type": "array",
+    "items": {"type": "string"},
+    "description": "2 to 4 short labels, each 2 to 5 words, one group per item (e.g. 'Commercial fishers').",
+},
             "stage": {
                 "type": "string",
                 "enum": [
@@ -93,14 +93,22 @@ def build_bill_context(bill, crs_summary):
         f"Title: {bill.title}",
         f"Sponsor: {bill.sponsor or 'Unknown'}",
         f"Policy area: {bill.policy_area or 'Not listed'}",
-        "",
+        f"Latest action: {bill.latest_action_date}: {bill.latest_action_text}",
         "CRS summary:",
         crs_summary or "(No CRS summary available yet.)",
         "",
-        "Action timeline (oldest first):",
+        "Action timeline (oldest first):"
     ]
     for a in bill.actions.order_by("action_date"):
         lines.append(f"- {a.action_date}: {a.text}")
+    if "Presented to President" in bill.latest_action_text:
+         lines += [
+					"",
+					"Process note (constitutional rule):",
+					"Once presented, the President has 10 days, excluding Sundays, to sign or veto the bill. "
+					"If the President does neither and Congress is in session, it becomes law without a signature. "
+					"If Congress has adjourned during those 10 days, the bill does not become law (a pocket veto).",
+				]
     return "\n".join(lines)
 
 
@@ -132,11 +140,17 @@ class Command(BaseCommand):
             max_tokens=1024,
             system=SYSTEM_PROMPT,
             tools=[BRIEF_TOOL],
-            tool_choice={"type": "tool", "name": "save_brief"},
+            tool_choice={"type": "auto"},
             messages=[{"role": "user", "content": context}],
         )
-
-        data = next(b.input for b in response.content if b.type == "tool_use")
+        tool_calls = [b for b in response.content if b.type == "tool_use"]
+        if not tool_calls:
+            raise CommandError(
+                "Claude answered without calling save_brief. "
+                f"Stop reason: {response.stop_reason}. Try running it again."
+            )
+        data = tool_calls[0].input
+        # data = next(b.input for b in response.content if b.type == "tool_use")
 
         overview = Brief.objects.create(
             bill=bill,
