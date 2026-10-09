@@ -19,7 +19,8 @@ Rules:
 - Never invent numbers, names, dollar amounts, or effects that the input does not support.
 - If the input does not say something, leave it out rather than guessing.
 - Describe what the bill does, not whether it is good or bad.
-- Always respond by calling the save_brief tool."""
+- Always respond by calling the save_brief tool.
+- Use "Passed both chambers" only if both chambers passed the same text. If they passed different versions, use "Resolving differences."""
 
 BRIEF_TOOL = {
     "name": "save_brief",
@@ -47,6 +48,7 @@ BRIEF_TOOL = {
                     "In committee",
                     "Passed committee",
                     "Passed one chamber",
+                    "Resolving differences",
                     "Passed both chambers",
                     "Presented to President",
                     "Became law",
