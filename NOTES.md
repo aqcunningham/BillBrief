@@ -4,6 +4,25 @@ AI-powered congressional bill tracker + HTML newsletter.
 
 ---
 
+## October 8 — Production settings
+
+**Moved secrets and environment settings out of `settings.py`**
+- Generated a new secret key:
+    python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+- Added to `.env`: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=True`, `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1`
+- In `settings.py` (after `load_dotenv()`):
+
+    SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+    DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+
+- Why: the original key from `startproject` was committed to the public repo; DEBUG now defaults to False (safe for production); ALLOWED_HOSTS will get the live domain on Railway
+- Checked `git diff config/settings.py` for secrets before committing
+
+**Lesson: `os.environ["X"]` vs `os.getenv("X")`**
+- `os.environ["X"]` fails immediately with a clear error naming the missing variable; use it for required secrets
+- `os.getenv("X", default)` returns None or a default silently; use it for optional settings with a safe default
+
 ## October 7 - Current-Congress sync, Anthropic setup
 
 **1. Created a superuser** and confirmed all 3 models (Member, Bill, Action) in the Django admin.
