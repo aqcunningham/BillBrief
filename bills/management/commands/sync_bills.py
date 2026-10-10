@@ -39,15 +39,35 @@ class Command(BaseCommand):
 
         client = CongressClient(api_key)
         since = datetime.now(timezone.utc) - timedelta(days=opts["days"])
-        listing = client.get(
-            # "/bill",
-            f"/bill/{opts['congress']}",
-            fromDateTime=since.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            limit=opts["limit"],
-        )
 
-        bills = listing.get("bills", [])
+            # Fetch bills page by page, newest updates first, up to --limit
+        params = {
+            "fromDateTime": since.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sort": "updateDate desc",
+            "limit": 250,  # the API's maximum page size
+        }
+        # listing = client.get(
+        #     # "/bill",
+        #     f"/bill/{opts['congress']}",
+        #     fromDateTime=since.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        #     sort="updateDate desc",
+        #     limit=opts["limit"],
+        # )
+
+        bills, offset = [], 0
+        while len(bills) < opts["limit"]:
+            page = client.get(f"/bill/{opts['congress']}", offset=offset, **params)
+            batch = page.get("bills", [])
+            if not batch:
+                break
+            bills.extend(batch)
+            offset += len(batch)
+            if not (page.get("pagination") or {}).get("next"):
+                break
+        bills = bills[: opts["limit"]]
+
         self.stdout.write(f"Found {len(bills)} bills updated since {since:%Y-%m-%d}")
+
 
         for item in bills:
             try:
