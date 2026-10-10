@@ -3,6 +3,11 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 9 — README
+
+- Rewrote README.md: what works today, design principles, concept designs, stack, local setup, roadmap, link to build log
+- Labeled mockups as "Concept designs" so they aren't mistaken for built features
+- Renamed image files to remove `&`, which can break Markdown image links
 
 ## October 8 — Production settings
 

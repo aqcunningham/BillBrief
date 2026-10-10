@@ -32,8 +32,8 @@ How one approved brief feeds four products: the bill brief, alerts, member one-p
 and the weekly newsletter.
 
 ![BillBrief content map](docs/images/BB_contentmap.png)
-![Bill brief and alerts](docs/images/BB_brief-alerts.png)
-![Member one-pager and weekly newsletter](docs/images/BB_onepage-weekly.png)
+![Bill brief and alerts](docs/images/BB_brief&alerts.png)
+![Member one-pager and weekly newsletter](docs/images/BB_onepage&weekly.png)
 
 ## Stack
 
