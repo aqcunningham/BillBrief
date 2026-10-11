@@ -15,6 +15,20 @@ def parse_slug(slug):
     except ValueError:
         raise Http404("Bill not found")
 
+def tracker_steps(bill, stage):
+    """Build the 5-step tracker. Order depends on which chamber the bill started in."""
+    first, second = ("Senate", "House") if bill.origin_chamber == "Senate" else ("House", "Senate")
+    labels = ["Introduced", f"Passed {first}", f"Passed {second}", "To President", "Became Law"]
+    position = {
+        "Passed one chamber": 1,
+        "Resolving differences": 2,
+        "Passed both chambers": 2,
+        "Presented to President": 3,
+        "Vetoed": 3,
+        "Became law": 4,
+    }.get(stage, 0)  # Introduced, committee, floor, failed → step 0
+    return [{"label": label, "done": i < position, "current": i == position}
+            for i, label in enumerate(labels)]
 
 def bill_detail(request, slug):
     congress, bill_type, number = parse_slug(slug)
@@ -38,5 +52,6 @@ def bill_detail(request, slug):
             "overview": overview,
             "change": change,
             "actions": bill.actions.order_by("-action_date"),
+            "tracker": tracker_steps(bill, overview.stage if overview else ""),
         },
     )
