@@ -3,6 +3,21 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 11
+
+### Cross-checked a 28-day ranking with Congress.gov
+- `top_bills --days 28` ranked 9 bills correctly, but Congress.gov shows 7 more (S 195, HR 7250, S 759, S 603, HR 5334, S 307, S 32).
+- Cause: those bills were never synced. My database was built from partial syncs (3, 7 and 14 days, with caps), never a full 28 days.
+- Lesson: rankings are only as complete as the sync. Weekly runs are fine if every week is fully synced; looking back needs a backfill.
+- Later: skip unchanged bills in `sync_bills` (compare `updateDate` with `api_update_date`), and add a `sync_laws` command using the API's `/law/{congress}` endpoint.
+
+### Fixed the bill page tracker
+- Bug: all 5 of this week's top bills showed "Introduced" on the tracker.
+- Cause: the tracker read its stage from the approved AI brief. With no approved brief, the stage was `""`, which fell back to step 0.
+- Fix: added `tracker_position(bill)`, which works out the step from the bill's actions (became law → presented/vetoed → passed both → passed one → introduced). The tracker no longer depends on the AI or approval.
+- The blue stage pill still shows the AI's stage from the approved brief. If the pill and tracker disagree, the brief needs editing.
+- Principle: facts (where a bill is) come from code and data; the AI only writes the explanation.
+
 ## October 10
 
 ### Understanding the Congress.gov API structure
