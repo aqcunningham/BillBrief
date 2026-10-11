@@ -36,12 +36,10 @@ AI-powered congressional bill tracker + HTML newsletter.
 - HR 5345 (law) and S 2403 (presented) were missing because they were never synced: the 300-bill cap with newest-first sorting cut them off.
 - Fix: the weekly run syncs the full 7 days without a tight cap (`--days 7 --limit 2000`).
 - Lesson: the ranking was right, but the input was incomplete. Check the input first.
-
+- The output gives 5 important updates for the last 7 days:
 ![Last 7 days update](docs/images/last7d.png)
+- Corresponds to the same 5 bills from Congress.gov:
 ![Last 7 days update, cross check w Congress](docs/images/last7dcongress.png)
-![Django admin showing the Bill, Member, and Action models](docs/images/admin.png)
-
-
 
 ### Next
 - Generate and review briefs for this week's 5 bills.
