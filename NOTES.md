@@ -3,6 +3,48 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 10
+
+### Understanding the Congress.gov API structure
+- Read the API docs (`/bill`, `/bill/{congress}/{type}/{number}`, `/actions`, `/summaries`) and compared their JSON to my models.
+- Mapped the action JSON to the `Action` model: `actionDate` → `action_date`, `text` → `text`, `type` → `action_type`, `actionCode` → `action_code`. `sourceSystem` is skipped; my unique rule (bill + date + text) already removes duplicates.
+- The bill list comes back **oldest update first** by default. Added `sort="updateDate desc"` (it needs a real space: `updateDate+desc` was silently ignored) and paging with `offset`.
+
+### "Updated" doesn't mean "something happened"
+- Synced 300 bills from the last 3 days. The top of the list was mostly new bills (2 actions = introduced + referred) and resolutions.
+- `[updated], 0 new actions` means the record changed on Congress.gov (text, cosponsors, summary), not that Congress acted.
+- "N new actions" counts actions new to *my database*, not new this week. The real signal is `Action.action_date`.
+- Used the Django shell to filter the real events from the week: S 766 became law, House Small Business reported 8 bills in one markup, and Veterans' Affairs reported HR 7683.
+- Shell = scratchpad for exploring data. Once something works, it moves into real code.
+
+### Importance scoring
+- Created `bills/importance.py` (shared logic) and a `top_bills` management command (a thin wrapper to print results). Logic lives in the app, so the homepage and newsletter can use it too.
+- Each action gets points; a bill's score is its best action of the week.
+- Editorial rule: **max 5 briefs a week, minimum score 80** (resolving differences, sent to President, vetoed, became law).
+- Action types in my data: IntroReferral 1,202 · Floor 531 · Committee 417 · Calendars 78 · Discharge 18 · President 12 · Veto 5 · ResolvingDifferences 2 · NotUsed 2. More than half is introductions and referrals.
+- Switched from text phrases to the API's `type` field, with text only to refine Floor and Committee.
+- **Real data didn't match the docs:** "Became Public Law" is typed `President` (not `BecameLaw`), and "Presented to President" is typed `Floor`. Final-stage milestones are now matched by text, and everything else by type.
+- Bugs I hit: `min_score=60` in the function default hid the committee reports; an old `score_action` without the law check scored S 766 at 90.
+
+### Stages and tracker
+- Aligned the brief `stage` enum with Congress.gov's status categories (kept "Presented to President").
+- The enum is a multiple-choice list for the AI: it reads the timeline and picks one, and the editor checks it.
+- Added a 5-step status tracker to the bill page; the order depends on the origin chamber.
+
+### Cross-check with Congress.gov
+- Congress.gov showed 5 bills meeting my criteria this week; my ranking showed 3.
+- HR 5345 (law) and S 2403 (presented) were missing because they were never synced: the 300-bill cap with newest-first sorting cut them off.
+- Fix: the weekly run syncs the full 7 days without a tight cap (`--days 7 --limit 2000`).
+- Lesson: the ranking was right, but the input was incomplete. Check the input first.
+![Last 7 days update](docs/images/last7d.png)
+![Last 7 days update, cross check w Congress](docs/images/last7dcongress.png)
+
+
+### Next
+- Generate and review briefs for this week's 5 bills.
+- Add a "Resolving Differences" tracker step when a bill went through it.
+- Build the homepage feed.
+
 ## October 9 — README
 
 - Rewrote README.md: what works today, design principles, concept designs, stack, local setup, roadmap, link to build log
