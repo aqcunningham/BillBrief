@@ -4,6 +4,7 @@ import re
 import anthropic
 import requests
 from django.core.management.base import BaseCommand, CommandError
+from bills.deadlines import president_deadline
 
 from bills.models import Bill, Brief
 
@@ -102,16 +103,16 @@ def build_bill_context(bill, crs_summary):
         "",
         "Action timeline (oldest first):"
     ]
-    for a in bill.actions.order_by("action_date"):
-        lines.append(f"- {a.action_date}: {a.text}")
-    if "Presented to President" in bill.latest_action_text:
-         lines += [
-					"",
-					"Process note (constitutional rule):",
-					"Once presented, the President has 10 days, excluding Sundays, to sign or veto the bill. "
-					"If the President does neither and Congress is in session, it becomes law without a signature. "
-					"If Congress has adjourned during those 10 days, the bill does not become law (a pocket veto).",
-				]
+    presented = bill.actions.filter(text__icontains="presented to president").order_by("-action_date").first()
+    became_law = bill.actions.filter(text__icontains="became public law").exists()
+    if presented and not became_law:
+        deadline = president_deadline(presented.action_date)
+        lines.append(
+            f"Process note: Presented to the President on {presented.action_date:%B %d, %Y}. "
+            f"The President has until {deadline:%A, %B %d, %Y} (10 days, Sundays excepted) to sign or veto. "
+            "If Congress is in session and the President does neither, it becomes law without a signature; "
+            "if Congress has adjourned, it is a pocket veto."
+        )
     return "\n".join(lines)
 
 
