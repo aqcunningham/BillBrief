@@ -3,6 +3,37 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 12
+
+### Planned the full content pipeline
+- Sketched how a bill moves through BillBrief, then refined it:
+  daily sync → score ≥ 80 → instant alert (fact only) → Claude drafts → editor review → approved brief → four products.
+- Rules I settled on:
+  - **Automation drafts, editors publish.** Briefs are drafted automatically when a bill scores 80+, but nothing AI-written goes public without approval.
+  - **Alerts split by audience.** The site bell and the editor email show the bare fact right away (it comes from Congress.gov, not AI). Subscriber emails wait for the approved brief.
+  - **The one-pager is assembled automatically** from member data and approved briefs. No extra AI call.
+  - **The Friday newsletter is auto-drafted** from the week's approved top 5, and an editor clicks send.
+- Updated the content-flow diagram with a "How a bill gets here" row, tagging each step as code, AI or human.
+
+### Member one-pagers: worth it
+- One-pager per sponsor when their bill becomes law or reaches the President. National Journal's audience tracks lawmakers, not just bills.
+- The trigger is the bill's milestone, not the member's party, so it stays neutral.
+- Made a mockup for S 240 (Sen. Steve Daines): a bill brief and a member one-pager side by side.
+
+### President's deadline in code
+- Added `bills/deadlines.py`: 10 days, Sundays excepted, counting from the day after presentment. Presented Oct 5 → deadline Fri, Oct 16.
+- `generate_briefs` now passes the exact date to Claude in the process note, instead of letting the model guess.
+- Bug: `ModuleNotFoundError: No module named 'bills.deadlines'`. The file wasn't saved in the right place; it has to sit in `bills/` next to `models.py`.
+
+### Regenerated and approved the S 240 brief
+- The bill page kept showing the old "10 days" text. That's because public pages only show approved briefs, and the new one was still a draft. Approved the new pair and rejected the old pair.
+- Editorial catch: the AI dropped the weekday and put "(Sundays excepted)" in an awkward spot. Rewrote it as: "The President has until Friday, Oct. 16, 2026, to sign or veto it."
+
+### Next
+- Generate and approve briefs for S 766, HR 5345 and S 2403; regenerate S 283 with the exact deadline.
+- Show which version the CRS summary describes.
+- Build the homepage feed, then deploy to Railway.
+
 ## October 11
 
 ### Cross-checked a 28-day ranking with Congress.gov
