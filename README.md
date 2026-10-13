@@ -30,7 +30,7 @@ plain-language briefs, and requires an editor's approval before anything publish
 
 How one approved brief feeds four products: the bill brief, alerts, member one-pagers,
 and the weekly newsletter.
-
+![How the process runs](docs/images/pipelin.png)
 ![BillBrief content map](docs/images/BB_contentmap.png)
 ![Bill brief and alerts](docs/images/BB_brief&alerts.png)
 ![Member one-pager and weekly newsletter](docs/images/BB_onepage&weekly.png)
