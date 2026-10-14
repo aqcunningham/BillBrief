@@ -20,7 +20,7 @@ AI-powered congressional bill tracker + HTML newsletter.
 - New `Brief` fields: `as_of`, `crs_version`, `status_text`, `whats_next`, and `reused_from` (which approved brief the explanation was copied from).
 - The bill page shows the latest approved brief, and cuts the timeline and tracker at its `as_of` date, so the whole page moves together on approval.
 - Removed the `kind` field (Overview / What changed). Every brief is now the same kind, one per version.
-
+![s240 brief pre-edit](docs/images/s240brief.png)
 ### Rewrote `generate_briefs`
 - Claude now writes only `summary`, `why_it_matters` and `who_is_affected`. Stage, status and next step come from code.
 - The prompt tells Claude to use the short title or "the measure," not "the bill" or "the law," so the explanation reads right at any stage.
