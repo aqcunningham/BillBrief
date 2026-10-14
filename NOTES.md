@@ -3,6 +3,50 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 13
+
+### Questioned the two-brief design
+- Each run created two briefs: an overview and a "what changed." Asked why we need both, and the answer didn't hold up: it was one AI call split into two rows that had to be approved separately.
+- Generated S 195 with the old code first (briefs 21 and 22) to compare before changing anything.
+- Found that the "what changed" brief stored `latest_change` and `whats_next` in columns named `summary` and `why_it_matters`. The admin labels were wrong: "Summary" was really "what happened," and "Why it matters" was really "what's next."
+- Lesson: **name columns for what they hold.** Reusing a field for different content saves a migration but makes the data lie.
+
+### Redesigned briefs as versions
+- Rules I set:
+  - Every milestone creates a new draft, and the page changes only after an editor approves it.
+  - The AI explanation is regenerated only when the CRS summary changes; otherwise it's copied from the last approved brief.
+  - History for readers is the action timeline.
+- Facts move to code: new `bills/status.py` with `facts_as_of(bill, as_of)` returns stage, status line and what's next (including the President's deadline), using only actions up to a date.
+- New `Brief` fields: `as_of`, `crs_version`, `status_text`, `whats_next`, and `reused_from` (which approved brief the explanation was copied from).
+- The bill page shows the latest approved brief, and cuts the timeline and tracker at its `as_of` date, so the whole page moves together on approval.
+- Removed the `kind` field (Overview / What changed). Every brief is now the same kind, one per version.
+
+### Rewrote `generate_briefs`
+- Claude now writes only `summary`, `why_it_matters` and `who_is_affected`. Stage, status and next step come from code.
+- The prompt tells Claude to use the short title or "the measure," not "the bill" or "the law," so the explanation reads right at any stage.
+- `fetch_crs_summary` returns the summary's version (e.g. "Introduced in Senate (2025-01-22)").
+- New `--rewrite` flag forces a fresh explanation even if the CRS summary hasn't changed.
+- One run = one draft brief.
+
+### Bugs and catches
+- **The action timeline was never sent to Claude.** The prompt had the heading "Action timeline (oldest first)" with nothing under it, so Claude only ever saw the CRS summary and one "latest action" line. Fixed. Another "check the input first."
+- The pasted file was cut off right after the `try/except`, so the command finished silently with no brief and no error. Found it with `grep` and `tail`.
+- Commented out a whole block when only the `kind=` arguments needed to go. Only `, kind=Brief.Kind.OVERVIEW` was tied to the removed field.
+
+### S 195 (American Music Tourism Act), before vs. after
+- Before (21 + 22): two briefs; AI wrote "became Public Law"; the summary said "the bill" even though it's law.
+- After (23): one brief; code wrote "Became Public Law No: 119-121 on Oct. 9, 2026"; the summary uses the act's name.
+- `crs_version` showed the CRS summary describes the **introduced** version (Jan 2025), so the reporting schedule needs checking against the enrolled text before approval.
+- Approved 23, then re-ran: "Explanation: reused from brief 23," with no AI call.
+
+### Outreach
+- Built a list of 20+ target companies for BillBrief (legislative tech, policy newsrooms, civic tech). Plan: deploy first, then send in waves.
+
+### Next
+- Finish the `kind` removal and migrate; check the bill page shows `status_text` and `whats_next`.
+- Generate and approve briefs for this week's top bills with the new flow.
+- Show "Based on the CRS summary of the [version]" on the bill page.
+- Homepage feed, then deploy.
 ## October 12
 
 ### Planned the full content pipeline
