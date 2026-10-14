@@ -77,21 +77,27 @@ class Action(models.Model):
 class Brief(models.Model):
     """An AI-drafted, plain-language brief for a bill.
     Briefs start as drafts and publish only after editor approval."""
-    class Kind(models.TextChoices):
-        OVERVIEW = "overview", "Overview"
-        CHANGE = "change", "What changed"
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
 
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="briefs")
-    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.OVERVIEW)
     summary = models.TextField()
     why_it_matters = models.TextField()
     who_is_affected = models.JSONField(default=list)
     policy_area = models.CharField(max_length=200, blank=True)
     stage = models.CharField(max_length=100, blank=True)
+    as_of = models.DateField(null=True, blank=True)          # latest action date this brief covers
+    crs_version = models.CharField(max_length=200, blank=True)  # which CRS summary it used
+    reused_from = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reused_by",
+        help_text="Approved brief this explanation was copied from. Empty = written fresh by Claude.",
+    )
+    status_text = models.TextField(blank=True)               # written by code, editable
+    whats_next = models.TextField(blank=True)                # written by code, editable
 
     status = models.CharField(
         max_length=10, choices=Status.choices, default=Status.DRAFT
@@ -108,5 +114,4 @@ class Brief(models.Model):
         ordering = ["-created_at"]
     
     def __str__(self):
-        return f"Brief for {self.bill} ({self.get_status_display()})"
-    
+        return f"Brief for {self.bill} (as of {self.as_of}, {self.get_status_display()})"

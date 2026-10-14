@@ -73,13 +73,13 @@
       {% endif %}
     </article>
 
-    {% if change %}
-      <section class="change">
-        <div class="k">What changed</div>
-        <div>{{ change.summary }}</div>
-        <div><strong>What's next:</strong> {{ change.why_it_matters }}</div>
-      </section>
-    {% endif %}
+    {% if brief.status_text %}
+  <section class="change">
+    <div class="k">Latest{% if brief.as_of %} · {{ brief.as_of|date:"M j, Y" }}{% endif %}</div>
+    <div>{{ brief.status_text }}</div>
+    {% if brief.whats_next %}<div><strong>What's next:</strong> {{ brief.whats_next }}</div>{% endif %}
+  </section>
+{% endif %}
 
     <section class="card">
       <div class="k">Timeline</div>

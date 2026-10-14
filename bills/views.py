@@ -15,9 +15,13 @@ def parse_slug(slug):
     except ValueError:
         raise Http404("Bill not found")
 
+def tracker_position(bill, as_of=None):
+    """Where the bill is, from its recorded actions up to `as_of`. No AI involved."""
+    actions = bill.actions.all()
+    if as_of:
+        actions = actions.filter(action_date__lte=as_of)
+    texts = [a.text.lower() for a in actions]
 
-def tracker_position(bill):
-    texts = [a.text.lower() for a in bill.actions.all()]
     def any_has(*phrases):
         return any(p in t for t in texts for p in phrases)
 
@@ -34,15 +38,16 @@ def tracker_position(bill):
     return 0
 
 
-def tracker_steps(bill, stage):
+def tracker_steps(bill, as_of=None):
     """Build the 5-step tracker. Order depends on which chamber the bill started in."""
     first, second = ("Senate", "House") if bill.origin_chamber == "Senate" else ("House", "Senate")
     labels = ["Introduced", f"Passed {first}", f"Passed {second}", "To President", "Became Law"]
-    position = tracker_position(bill)
+    position = tracker_position(bill, as_of)
     return [
         {"label": label, "done": i < position, "current": i == position}
         for i, label in enumerate(labels)
     ]
+
 
 def bill_detail(request, slug):
     congress, bill_type, number = parse_slug(slug)
@@ -53,19 +58,21 @@ def bill_detail(request, slug):
         number=number,
     )
 
-    # Public pages only ever show APPROVED briefs.
-    approved = bill.briefs.filter(status=Brief.Status.APPROVED)
-    overview = approved.filter(kind=Brief.Kind.OVERVIEW).first()
-    change = approved.filter(kind=Brief.Kind.CHANGE).first()
+    # Public pages only show the latest APPROVED brief, and only actions up to its as_of date.
+    brief = bill.briefs.filter(status=Brief.Status.APPROVED).order_by("-created_at").first()
+    as_of = brief.as_of if brief else None
+
+    actions = bill.actions.order_by("-action_date")
+    if as_of:
+        actions = actions.filter(action_date__lte=as_of)
 
     return render(
         request,
         "bills/bill_detail.html",
         {
             "bill": bill,
-            "overview": overview,
-            "change": change,
-            "actions": bill.actions.order_by("-action_date"),
-            "tracker": tracker_steps(bill, overview.stage if overview else ""),
+            "brief": brief,
+            "actions": actions,
+            "tracker": tracker_steps(bill, as_of),
         },
     )
