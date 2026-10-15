@@ -3,6 +3,31 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 14
+
+### Bill page shows the new brief versions
+- First check showed nothing because I opened it on port 5500 (VS Code Live Server, which renders the raw template with no data) and at `/bill/` instead of `/bills/`. The Django page is `http://127.0.0.1:8000/bills/119-s-195/`.
+- The page then showed "awaiting editor review" even though brief 23 was approved: the template still used `overview` in six places after `kind` was removed. Fixed with `sed -i '' 's/overview/brief/g'`.
+- S 195 now shows the approved explanation, the "Became law" pill, a "Latest · Oct 9, 2026" box written by code, and the tracker and timeline cut at the brief's `as_of` date.
+
+### Cleaned up the brief admin
+- **Bug:** "Reviewed by" and "Reviewed at" stayed empty when I approved by changing the Status dropdown, because only the Approve action filled them. Added `save_model` so the reviewer is recorded however the status changes.
+- Facts written by code (stage, status line, what's next) are now **read-only**. Editors check them but don't retype them; if a fact is wrong, the fix belongs in the data or the code.
+- The form reads in review order:
+  1. **Explanation**, with a "Source" note: copied from an approved brief (the CRS summary hasn't changed), or written fresh by Claude.
+  2. **Facts**, shown exactly as readers will see them. "What's next" is hidden when there isn't one.
+  3. **Decision**: Status plus one "Reviewed" line.
+  4. **Where this came from** (collapsed): as of, CRS version, reused from, model, created.
+- Confusion I hit: brief 29 (a test draft) showed "Reused from: …Approved," which looked like it was already approved. It was a new draft reusing approved brief 23's explanation. The Source note now says that plainly.
+- Bug: `admin.E035`. The new methods were at the left margin instead of inside `BriefAdmin`, so Django couldn't find them. Indentation again.
+
+### Outreach
+- Drafted a follow-up to Jehan asking what he meant by "term search" (likely keyword search across bills). Plan: build it, then send the link.
+
+### Next
+- Show "Based on the CRS summary of the version introduced in the Senate on Jan 22, 2025" on the bill page.
+- Generate and approve briefs for this week's top bills with the new flow.
+- Keyword search (if Jehan confirms), homepage feed, deploy.
 ## October 13
 
 ### Questioned the two-brief design
