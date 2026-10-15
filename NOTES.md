@@ -20,14 +20,26 @@ AI-powered congressional bill tracker + HTML newsletter.
   4. **Where this came from** (collapsed): as of, CRS version, reused from, model, created.
 - Confusion I hit: brief 29 (a test draft) showed "Reused from: …Approved," which looked like it was already approved. It was a new draft reusing approved brief 23's explanation. The Source note now says that plainly.
 - Bug: `admin.E035`. The new methods were at the left margin instead of inside `BriefAdmin`, so Django couldn't find them. Indentation again.
+- Bill page now says which version the CRS summary describes (e.g. "as introduced in the Senate, Jan 22, 2025"), so readers know when the explanation may not match the final text.
+- Generated another 2 briefs: 
+  python manage.py generate_briefs --bill hr-5345
+  python manage.py generate_briefs --bill s-766 
 
-### Outreach
-- Drafted a follow-up to Jehan asking what he meant by "term search" (likely keyword search across bills). Plan: build it, then send the link.
+### End-to-end editorial flow works
+1. `python manage.py generate_briefs --bill S-240` creates a **draft** brief: facts from code, explanation from Claude.
+2. The public bill page (`/bills/119-s-240/`) shows only the facts and the timeline, with the note "A brief for this bill is awaiting editor review." The draft is never public.
+![s766 brief to edit](docs/images/brief766toedit.png)
+3. In the Django admin, I review the draft (Source note, explanation, facts), edit where needed, and set Status to **Approved**. The reviewer and time are recorded.
+![django admin reviewing bill](docs/images/brief766approval.png)
+4. Refresh the bill page: the approved brief appears, with the explanation, stage pill, "Latest" box and CRS version note.
+![the approved brief](docs/images/brief766approved.png)
+
+Nothing AI-written reaches readers without an editor's approval.
+
 
 ### Next
-- Show "Based on the CRS summary of the version introduced in the Senate on Jan 22, 2025" on the bill page.
-- Generate and approve briefs for this week's top bills with the new flow.
 - Keyword search (if Jehan confirms), homepage feed, deploy.
+
 ## October 13
 
 ### Questioned the two-brief design
