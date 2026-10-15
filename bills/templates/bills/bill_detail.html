@@ -72,9 +72,6 @@
         {% if brief.crs_version %}
           <div class="source-note">Based on the CRS summary of the bill as {{ brief.crs_version_phrase }}{% if brief.crs_version_date %}, {{ brief.crs_version_date|date:"M j, Y" }}{% endif %}.</div>
         {% endif %}
-        {% if brief.reused_from %}
-          <div class="source-note">This brief was reused from {{ brief.reused_from }}.</div>
-        {% endif %}
       {% else %}
         <p class="empty">A brief for this bill is awaiting editor review.</p>
       {% endif %}
