@@ -18,13 +18,14 @@
     .wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
     .brand { font-family: var(--display); font-weight: 800; font-size: 22px; text-decoration: none; color: var(--ink); }
     .brand span { color: var(--blue); }
-    .card { background: var(--surface); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+    .card { background: var(--surface); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .k { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+  .source-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--blue-soft); padding-top: 12px; }
     .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .billno { font-family: var(--mono); font-size: 13px; color: var(--muted); }
     .pill { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 11px; border-radius: 999px; background: var(--blue); color: #FFFFFF; }
     h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(26px, 4.5vw, 36px); line-height: 1.1; text-wrap: balance; }
     .meta { font-size: 14px; color: var(--muted); }
-    .k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--blue-soft); }
     .change { background: var(--coral-soft); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
@@ -66,15 +67,19 @@
         <div><div class="k">Why it matters</div>{{ brief.why_it_matters }}</div>
         <div>
           <div class="k">Who's affected</div>
-          {% if brief.crs_version %}
-  <div class="meta">Based on the CRS summary of the bill as {{ brief.crs_version_label|lower }}{% if brief.crs_version_date %}, {{ brief.crs_version_date|date:"M j, Y" }}{% endif %}.</div>
-{% endif %}
           <div class="chips">{% for group in brief.who_is_affected %}<span class="chip">{{ group }}</span>{% endfor %}</div>
         </div>
+        {% if brief.crs_version %}
+          <div class="source-note">Based on the CRS summary of the bill as {{ brief.crs_version_phrase }}{% if brief.crs_version_date %}, {{ brief.crs_version_date|date:"M j, Y" }}{% endif %}.</div>
+        {% endif %}
+        {% if brief.reused_from %}
+          <div class="source-note">This brief was reused from {{ brief.reused_from }}.</div>
+        {% endif %}
       {% else %}
         <p class="empty">A brief for this bill is awaiting editor review.</p>
       {% endif %}
     </article>
+
 
     {% if brief.status_text %}
   <section class="change">
