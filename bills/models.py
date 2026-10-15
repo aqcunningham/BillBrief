@@ -115,3 +115,17 @@ class Brief(models.Model):
     
     def __str__(self):
         return f"Brief for {self.bill} (as of {self.as_of}, {self.get_status_display()})"
+
+    @property
+    def crs_version_label(self):
+        """'Introduced in Senate (2025-01-22)' -> 'Introduced in Senate'."""
+        return self.crs_version.split(" (")[0]
+
+    @property
+    def crs_version_date(self):
+        """'Introduced in Senate (2025-01-22)' -> date(2025, 1, 22), or None."""
+        from datetime import date
+        try:
+            return date.fromisoformat(self.crs_version.split("(")[1].rstrip(")"))
+        except (IndexError, ValueError):
+            return None

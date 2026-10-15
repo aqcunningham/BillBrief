@@ -66,6 +66,9 @@
         <div><div class="k">Why it matters</div>{{ brief.why_it_matters }}</div>
         <div>
           <div class="k">Who's affected</div>
+          {% if brief.crs_version %}
+  <div class="meta">Based on the CRS summary of the bill as {{ brief.crs_version_label|lower }}{% if brief.crs_version_date %}, {{ brief.crs_version_date|date:"M j, Y" }}{% endif %}.</div>
+{% endif %}
           <div class="chips">{% for group in brief.who_is_affected %}<span class="chip">{{ group }}</span>{% endfor %}</div>
         </div>
       {% else %}
