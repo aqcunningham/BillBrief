@@ -129,3 +129,8 @@ class Brief(models.Model):
             return date.fromisoformat(self.crs_version.split("(")[1].rstrip(")"))
         except (IndexError, ValueError):
             return None
+    @property
+    def crs_version_phrase(self):
+        """'Introduced in Senate' -> 'introduced in Senate'."""
+        label = self.crs_version_label
+        return label[:1].lower() + label[1:]
