@@ -48,7 +48,7 @@
     <article class="card">
       <div class="topline">
         <span class="billno">{{ bill.bill_type }} {{ bill.number }} · {{ bill.congress }}th Congress</span>
-        {% if overview %}<span class="pill">{{ overview.stage }}</span>{% endif %}
+        {% if brief %}<span class="pill">{{ brief.stage }}</span>{% endif %}
       </div>
       <h1>{{ bill.title }}</h1>
       <div class="tracker">
@@ -61,12 +61,12 @@
         {% if bill.policy_area %} · {{ bill.policy_area }}{% endif %}
       </div>
 
-      {% if overview %}
-        <div><div class="k">What it does</div>{{ overview.summary }}</div>
-        <div><div class="k">Why it matters</div>{{ overview.why_it_matters }}</div>
+      {% if brief %}
+        <div><div class="k">What it does</div>{{ brief.summary }}</div>
+        <div><div class="k">Why it matters</div>{{ brief.why_it_matters }}</div>
         <div>
           <div class="k">Who's affected</div>
-          <div class="chips">{% for group in overview.who_is_affected %}<span class="chip">{{ group }}</span>{% endfor %}</div>
+          <div class="chips">{% for group in brief.who_is_affected %}<span class="chip">{{ group }}</span>{% endfor %}</div>
         </div>
       {% else %}
         <p class="empty">A brief for this bill is awaiting editor review.</p>
@@ -93,7 +93,7 @@
     </section>
 
     <p class="foot">
-      {% if overview %}Reviewed by an editor. {% endif %}Source: Congress.gov and the Congressional Research Service.
+      {% if brief %}Reviewed by an editor. {% endif %}Source: Congress.gov and the Congressional Research Service.
     </p>
   </div>
 </body>
