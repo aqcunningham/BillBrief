@@ -1,10 +1,13 @@
-from django.shortcuts import render
-
 # Create your views here.
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 
 from .models import Bill, Brief
+from datetime import date, timedelta
+ 
+from .importance import top_bills
+from .status import facts_as_of
+ 
 
 
 def parse_slug(slug):
@@ -76,3 +79,72 @@ def bill_detail(request, slug):
             "tracker": tracker_steps(bill, as_of),
         },
     )
+
+# --- Add these below your existing views ---
+
+PILL_CLASSES = {"Became law": "law", "Vetoed": "veto"}
+
+
+def milestone_label(text):
+    """Short bell label for a final-stage action."""
+    t = text.lower()
+    if "became public law" in t:
+        return "Became law"
+    if "vetoed" in t:
+        return "Vetoed"
+    if "presented to president" in t:
+        return "Sent to the President"
+    return text[:40]
+
+
+def latest_approved(bill):
+    return bill.briefs.filter(status=Brief.Status.APPROVED).order_by("-created_at").first()
+
+
+def home(request):
+    today = date.today()
+
+    # 1. This week's final-stage bills (score 80+), each with its approved brief if there is one.
+    cards = []
+    for score, action in top_bills(days=7, limit=12, min_score=40):
+        bill = action.bill
+        stage, status_text, whats_next = facts_as_of(bill, action.action_date)
+        cards.append({
+            "bill": bill,
+            "brief": latest_approved(bill),   # None -> card says "awaiting editor review"
+            "stage": stage,
+            "pill_class": PILL_CLASSES.get(stage, ""),
+            "status_text": status_text,
+            "whats_next": whats_next,
+            "date": action.action_date,
+            "tracker": tracker_steps(bill, action.action_date),   # new
+        })
+
+    # 2. Recently published briefs: newest approved brief per bill.
+    recent, seen = [], set()
+    approved = (Brief.objects.filter(status=Brief.Status.APPROVED)
+                .select_related("bill").order_by("-created_at"))
+    for brief in approved:
+        if brief.bill_id not in seen:
+            seen.add(brief.bill_id)
+            recent.append(brief)
+        if len(recent) == 10:
+            break
+
+    # 3. Bell: final-stage milestones from the last 30 days, newest first. Facts only, no AI text.
+    alerts = [
+        {"bill": a.bill, "label": milestone_label(a.text), "date": a.action_date}
+        for _, a in top_bills(days=30, limit=5, min_score=80)
+    ]
+    alerts.sort(key=lambda x: x["date"], reverse=True)
+
+    return render(request, "bills/home.html", {
+        "cards": cards,
+        "recent": recent,
+        "alerts": alerts,
+        "today": today,
+        "week_start": today - timedelta(days=7),
+                "law_count": sum(c["stage"] == "Became law" for c in cards),
+                "president_count": sum(c["stage"] == "Presented to President" for c in cards),
+                "approved_count": sum(c["brief"] is not None for c in cards),
+            })

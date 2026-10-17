@@ -6,4 +6,5 @@ app_name = "bills"
 
 urlpatterns = [
     path("bills/<str:slug>/", views.bill_detail, name="bill_detail"),
+    path("", views.home, name="home"),
 ]

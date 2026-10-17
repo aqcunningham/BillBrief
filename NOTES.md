@@ -3,6 +3,38 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 16
+
+### Site structure decided
+- **Public site:** homepage ("This week in Congress"), bill pages, member one-pagers, newsletter preview + signup, How it works, milestone bell.
+- **Editor desk (later):** a logged-in page listing this week's top bills with Generate / Review / Approve buttons. Approving updates the bill page, member page and newsletter automatically.
+- Alerts: the bell first (facts only, no email); email alerts and subscriber sending in V1.1.
+- The newsletter is built from approved briefs only. A bill without an approved brief appears only as a bare fact, or waits a week.
+
+### Built the public homepage (`/`)
+- Header with logo, nav and a milestone bell: final-stage actions from the last 30 days, facts only, works without JavaScript.
+- Hero: "This week in Congress," the date range, and three stat tiles (became law / sent to the President / editor-approved briefs).
+- **Final-stage bills this week:** one row of full-brief cards (number, stage pill, tracker, sponsor and policy area, What it does, Why it matters, Who's affected, CRS note, Latest box with status and deadline). 3 visible, arrows for more; every card the same minimum height.
+- Bills without an approved brief keep the same card layout with a dashed "Brief awaiting editor review" box, so no AI text goes public unapproved.
+- "Recently published briefs" list, plus Newsletter and How it works teasers.
+- The view reuses `top_bills()`, `facts_as_of()` and `tracker_steps()`, with no new logic. The card design lives in one shared template, `_card.html`.
+![homepage look](docs/images/homepage.png)
+
+### Iterations
+- Narrow centered column → full-width layout with larger type.
+- Tried 3 large cards plus a separate scrolling strip; it read as two feeds. Changed to one row with arrows.
+- Bug: the scrolling row used percentage-based grid columns, which made the whole page wider than the screen (stat tile and bell cut off). Switched to flexbox.
+- Bug: the header's `padding: 16px 0` overrode the page margin, so the logo touched the screen edge.
+
+### Gotchas
+- Live Server (port 5500) shows raw template tags; Django pages need `runserver` on port 8000.
+- URLs are routes, not file paths: `/`, not `/home.html`.
+- Templates go in `bills/templates/bills/`, or Django can't find them.
+
+### Next
+- Set `min_score` back to 80; generate and approve briefs for the 5 bills sent to the President Oct 14.
+- Newsletter page, How it works page, then deploy.
+
 ## October 14
 
 ### Bill page shows the new brief versions
@@ -35,10 +67,6 @@ AI-powered congressional bill tracker + HTML newsletter.
 ![the approved brief](docs/images/brief766approved.png)
 
 Nothing AI-written reaches readers without an editor's approval.
-
-
-### Next
-- Keyword search (if Jehan confirms), homepage feed, deploy.
 
 ## October 13
 

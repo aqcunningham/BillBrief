@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BillBrief · This week in Congress</title>
+  <meta name="description" content="Plain-language, editor-reviewed briefs on bills that became law or reached the President.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    :root {
+      --bg: #F3F5FA; --surface: #FFFFFF; --ink: #0E1530; --muted: #4A5372; --line: #DDE2EE;
+      --blue: #2F5BFF; --blue-soft: #E3E9FF; --coral: #FF4F3A; --coral-soft: #FFE6E2;
+      --law: #0E1530; --veto: #B42318;
+      --display: "Bricolage Grotesque", "Avenir Next", sans-serif;
+      --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55; }
+    a { color: inherit; }
+    .wrap { padding: 0 clamp(16px, 2vw, 32px); }
+
+    /* Header */
+    header { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 16px; padding-bottom: 16px; }
+    .brand { font-family: var(--display); font-weight: 800; font-size: 30px; text-decoration: none; }
+    .brand span { color: var(--blue); }
+    nav { display: flex; align-items: center; gap: 28px; font-size: 16px; font-weight: 500; }
+    nav a { text-decoration: none; color: var(--muted); }
+    nav a:hover { color: var(--ink); }
+
+    /* Bell: a <details> dropdown, works without JavaScript */
+    .bell { position: relative; }
+    .bell summary { list-style: none; cursor: pointer; width: 44px; height: 44px; border-radius: 999px; background: var(--bg); display: flex; align-items: center; justify-content: center; position: relative; }
+    .bell summary::-webkit-details-marker { display: none; }
+    .bell .count { position: absolute; top: 6px; right: 6px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: var(--coral); color: #FFFFFF; font-family: var(--mono); font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .bell .panel { position: absolute; right: 0; top: 52px; width: min(340px, 86vw); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px; z-index: 10; box-shadow: 0 12px 32px rgba(14, 21, 48, 0.12); }
+    .bell .panel h2 { margin: 6px 10px 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .bell .item { display: block; padding: 10px; border-radius: 10px; text-decoration: none; font-size: 14px; }
+    .bell .item:hover { background: var(--bg); }
+    .bell .item b { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+    .bell .item small { display: block; color: var(--muted); font-size: 12px; }
+
+    /* Hero: headline on the left, this week's numbers on the right */
+    .hero { padding: 56px 0 40px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; align-items: end; }
+    .hero-text { display: flex; flex-direction: column; gap: 14px; }
+    .eyebrow { font-family: var(--mono); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(44px, 6.5vw, 92px); line-height: 1; letter-spacing: -0.025em; }
+    h1 em { font-style: normal; background: var(--blue); color: #FFFFFF; padding: 0 0.14em; border-radius: 10px; }
+    .lede { margin: 0; max-width: 62ch; font-size: 20px; color: var(--muted); }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .stat { background: var(--surface); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+    .stat b { font-family: var(--display); font-weight: 800; font-size: 52px; line-height: 1; }
+    .stat span { font-size: 15px; color: var(--muted); }
+    .stat.accent { background: var(--blue); color: #FFFFFF; }
+    .stat.accent span { color: #DCE3FF; }
+
+    /* Sections */
+    section { padding: 16px 0 48px; }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    h2.k { margin: 0; font-family: var(--mono); font-size: 15px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); }
+    .section-head span { font-size: 15px; color: var(--muted); }
+
+    /* Bill cards */
+    /* One row: 3 large cards visible, the rest reached with the arrows (or a trackpad swipe) */
+    .head-right { display: flex; align-items: center; gap: 14px; }
+    .arrows { display: flex; gap: 8px; }
+    .arrows[hidden] { display: none; }
+    .arrows button { width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 20px; cursor: pointer; }
+    .arrows button:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+    .arrows button:disabled { opacity: 0.35; cursor: default; }
+    .carousel { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .carousel::-webkit-scrollbar { display: none; }
+    .carousel > .card { flex: 0 0 calc((100% - 40px) / 3); min-width: 0; min-height: 620px; scroll-snap-align: start; }
+    .carousel:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; border-radius: 20px; }
+    .card { background: var(--surface); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px; text-decoration: none; border: 2px solid transparent; transition: border-color 0.15s; }
+
+    /* Inside a card: same pieces as the bill page */
+    .card .k { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+    .tracker { display: flex; gap: 6px; }
+    .step { flex: 1; min-width: 0; text-align: center; font-size: 14px; font-weight: 600; line-height: 1.25; padding: 10px 4px; border-radius: 10px; background: var(--bg); color: var(--muted); }
+    .step.done { background: var(--blue-soft); color: var(--ink); }
+    .step.current { background: var(--blue); color: #FFFFFF; }
+    .meta { font-size: 16px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { font-size: 15px; font-weight: 600; padding: 6px 13px; border-radius: 999px; background: var(--blue-soft); color: var(--ink); }
+    .source-note { font-size: 15px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+    .awaiting { flex: 1; min-height: 240px; border: 2px dashed var(--line); border-radius: 14px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--muted); font-style: italic; font-size: 17px; }
+    .card:hover { border-color: var(--blue); }
+    .card .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .billno { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--muted); }
+    .pill { font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 999px; background: var(--blue); color: #FFFFFF; }
+    .pill.law { background: var(--law); }
+    .pill.veto { background: var(--veto); }
+    .card h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; line-height: 1.1; }
+    .card p { margin: 0; font-size: 18px; line-height: 1.6; }
+    .card .pending { color: var(--muted); font-style: italic; font-size: 17px; }
+    .latest { margin-top: auto; background: var(--coral-soft); color: var(--ink); border-radius: 12px; padding: 14px 16px; font-size: 16px; }
+    .latest b { font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #9A2417; display: block; margin-bottom: 2px; }
+    .sponsor { font-size: 15px; color: var(--muted); }
+
+    /* Latest briefs list */
+    .list { background: var(--surface); border-radius: 20px; padding: 8px 28px; }
+    .row { display: grid; grid-template-columns: 130px 1fr auto; gap: 18px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 18px; }
+    .row:last-child { border-bottom: none; }
+    .row:hover .t { color: var(--blue); }
+    .row .t { font-weight: 600; }
+    .row .d { font-size: 15px; color: var(--muted); white-space: nowrap; }
+
+    /* Newsletter + how it works */
+    .promo { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; }
+    .box { background: var(--surface); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 14px; }
+    .box.dark { background: var(--ink); color: #FFFFFF; }
+    .box.dark p { color: #C9D0EA; }
+    .box h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; }
+    .box p { margin: 0; font-size: 18px; color: var(--muted); }
+    .btn { align-self: flex-start; display: inline-block; padding: 14px 22px; border-radius: 999px; background: var(--blue); color: #FFFFFF; font-weight: 600; font-size: 16px; text-decoration: none; }
+    .steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 18px; }
+    .steps li { display: grid; grid-template-columns: 34px 1fr; gap: 8px; }
+    .steps li span { font-family: var(--mono); font-weight: 600; color: var(--blue); }
+
+    .empty { background: var(--surface); border-radius: 20px; padding: 28px; color: var(--muted); }
+    footer { padding: 32px 0 56px; font-size: 15px; color: var(--muted); border-top: 1px solid var(--line); }
+
+    @media (max-width: 1100px) {
+      .carousel > .card { flex-basis: calc((100% - 20px) / 2); }
+    }
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 28px; }
+    }
+    @media (max-width: 720px) {
+      nav .hide-sm { display: none; }
+      .promo { grid-template-columns: 1fr; }
+      .carousel > .card { flex-basis: 88%; min-height: 0; padding: 22px; }
+      .step { font-size: 12px; padding: 8px 2px; }
+      .row { grid-template-columns: 1fr; gap: 2px; }
+      .stat b { font-size: 40px; }
+      .card h3 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <a class="brand" href="{% url 'bills:home' %}">Bill<span>Brief</span></a>
+      <nav aria-label="Main">
+        <a class="hide-sm" href="#this-week">This week</a>
+        <a class="hide-sm" href="#newsletter">Newsletter</a>
+        <a class="hide-sm" href="#how-it-works">How it works</a>
+        <details class="bell">
+          <summary aria-label="Latest milestones{% if alerts %}, {{ alerts|length }} new{% endif %}">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            {% if alerts %}<span class="count">{{ alerts|length }}</span>{% endif %}
+          </summary>
+          <div class="panel">
+            <h2>Latest milestones</h2>
+            {% for a in alerts %}
+              <a class="item" href="{% url 'bills:bill_detail' a.bill.slug %}">
+                <b>{{ a.bill.bill_type }} {{ a.bill.number }}</b> · {{ a.label }}
+                <small>{{ a.date|date:"M j, Y" }} · {{ a.bill.title|truncatechars:60 }}</small>
+              </a>
+            {% empty %}
+              <p class="item">No major milestones in the last 30 days.</p>
+            {% endfor %}
+          </div>
+        </details>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <div class="hero-text">
+        <div class="eyebrow">{{ week_start|date:"M j" }} – {{ today|date:"M j, Y" }}</div>
+        <h1>This week in <em>Congress</em></h1>
+        <p class="lede">Plain-language briefs on bills that became law or reached the President's desk. Facts come from Congress.gov; every explanation is reviewed by an editor before it's published.</p>
+      </div>
+      <div class="stats" aria-label="This week at a glance">
+        <div class="stat"><b>{{ law_count }}</b><span>became law</span></div>
+        <div class="stat"><b>{{ president_count }}</b><span>sent to the President</span></div>
+        <div class="stat accent"><b>{{ approved_count }}</b><span>editor-approved briefs</span></div>
+      </div>
+    </div>
+
+    <section id="this-week" aria-labelledby="this-week-h">
+      <div class="section-head">
+        <h2 class="k" id="this-week-h">Final-stage bills this week</h2>
+        <div class="head-right">
+          <span>{{ cards|length }} bill{{ cards|length|pluralize }}</span>
+          <div class="arrows" hidden>
+            <button type="button" data-scroll="-1" aria-label="Previous bills">&larr;</button>
+            <button type="button" data-scroll="1" aria-label="More bills">&rarr;</button>
+          </div>
+        </div>
+      </div>
+      {% if cards %}
+        <div class="carousel" id="carousel" tabindex="0" role="region" aria-label="Final-stage bills this week">
+          {% for c in cards %}
+            {% include "bills/_card.html" with c=c small=False %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">No bills became law or reached the President this week. Recent briefs are below.</div>
+      {% endif %}
+    </section>
+
+    <section aria-labelledby="recent-h">
+      <div class="section-head">
+        <h2 class="k" id="recent-h">Recently published briefs</h2>
+        <span>Reviewed by an editor</span>
+      </div>
+      {% if recent %}
+        <div class="list">
+          {% for b in recent %}
+            <a class="row" href="{% url 'bills:bill_detail' b.bill.slug %}">
+              <span class="billno">{{ b.bill.bill_type }} {{ b.bill.number }}</span>
+              <span class="t">{{ b.bill.title }}</span>
+              <span class="d">{{ b.stage }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">No briefs published yet.</div>
+      {% endif %}
+    </section>
+
+    <section class="promo">
+      <div class="box dark" id="newsletter">
+        <h3>BillBrief Weekly</h3>
+        <p>Every Friday: the bills that became law or reached the President, in a five-minute read. Built from the week's approved briefs.</p>
+        <a class="btn" href="#">Preview this week's issue</a>
+      </div>
+      <div class="box" id="how-it-works">
+        <h3>How it works</h3>
+        <ol class="steps">
+          <li><span>01</span>Daily sync from Congress.gov</li>
+          <li><span>02</span>Code flags bills that became law or reached the President</li>
+          <li><span>03</span>Claude drafts a plain-language explanation</li>
+          <li><span>04</span>An editor reviews and approves it</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">Source: Congress.gov and the Congressional Research Service. Built by Aselle Cunningham.</div>
+  </footer>
+  <script>
+    // Arrows appear only when there are more cards than fit; each click moves one full screen of cards.
+    (function () {
+      var row = document.getElementById("carousel");
+      var arrows = document.querySelector(".arrows");
+      if (!row || !arrows) return;
+      var prev = arrows.querySelector('[data-scroll="-1"]');
+      var next = arrows.querySelector('[data-scroll="1"]');
+      function update() {
+        var max = row.scrollWidth - row.clientWidth;
+        arrows.hidden = max <= 4;
+        prev.disabled = row.scrollLeft <= 4;
+        next.disabled = row.scrollLeft >= max - 4;
+      }
+      arrows.querySelectorAll("button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          row.scrollBy({ left: Number(btn.dataset.scroll) * (row.clientWidth + 20), behavior: "smooth" });
+        });
+      });
+      row.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+      update();
+    })();
+  </script>
+</body>
+</html>

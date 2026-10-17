@@ -1,0 +1,33 @@
+<a class="card" href="{% url 'bills:bill_detail' c.bill.slug %}">
+  <div class="top">
+    <span class="billno">{{ c.bill.bill_type }} {{ c.bill.number }} · {{ c.bill.congress }}th Congress</span>
+    <span class="pill {{ c.pill_class }}">{{ c.stage }}</span>
+  </div>
+  <h3>{{ c.bill.title }}</h3>
+
+  <div class="tracker">
+    {% for step in c.tracker %}
+      <span class="step{% if step.done %} done{% endif %}{% if step.current %} current{% endif %}">{{ step.label }}</span>
+    {% endfor %}
+  </div>
+
+  <div class="meta">
+    {% if c.bill.sponsor %}Sponsor: {{ c.bill.sponsor.full_name }}{% endif %}{% if c.bill.policy_area %} · {{ c.bill.policy_area }}{% endif %}
+  </div>
+
+  {% if c.brief %}
+    <div><div class="k">What it does</div><p>{{ c.brief.summary }}</p></div>
+    <div><div class="k">Why it matters</div><p>{{ c.brief.why_it_matters }}</p></div>
+    <div>
+      <div class="k">Who's affected</div>
+      <div class="chips">{% for group in c.brief.who_is_affected %}<span class="chip">{{ group }}</span>{% endfor %}</div>
+    </div>
+    {% if c.brief.crs_version %}
+      <div class="source-note">Based on the CRS summary of the bill as {{ c.brief.crs_version_phrase }}{% if c.brief.crs_version_date %}, {{ c.brief.crs_version_date|date:"M j, Y" }}{% endif %}.</div>
+    {% endif %}
+  {% else %}
+    <div class="awaiting">Brief awaiting editor review</div>
+  {% endif %}
+
+  <div class="latest"><b>Latest · {{ c.date|date:"M j" }}</b>{{ c.status_text }}{% if c.whats_next %} {{ c.whats_next }}{% endif %}</div>
+</a>
