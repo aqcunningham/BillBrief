@@ -156,3 +156,26 @@ def create_draft(bill, rewrite=False):
         reused_from=previous if reused else None,
     )
     return brief, reused
+
+def draft_missing_briefs(days=7):
+    """Draft a brief for every final-stage bill that doesn't have one for its latest action yet.
+
+    Skips a bill when any brief (draft, approved or rejected) already covers its latest
+    action, so the job never pays twice for the same news or redoes an editor's rejection.
+    Returns a list of (bill, brief_or_None, note) for printing.
+    """
+    from .importance import top_bills
+
+    results = []
+    for score, action in top_bills(days=days, limit=50, min_score=80):
+        bill = action.bill
+        latest = bill.actions.order_by("-action_date").values_list("action_date", flat=True).first()
+        if bill.briefs.filter(as_of__gte=latest).exists():
+            results.append((bill, None, "already has a brief for this action"))
+            continue
+        try:
+            brief, reused = create_draft(bill)
+            results.append((bill, brief, "reused explanation" if reused else "written by Claude"))
+        except Exception as e:
+            results.append((bill, None, f"failed: {e}"))
+    return results
