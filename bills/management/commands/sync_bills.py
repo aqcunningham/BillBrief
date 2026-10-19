@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--days", type=int, default=3, help="Look back N days")
-        parser.add_argument("--limit", type=int, default=50, help="Max bills to sync")
+        parser.add_argument("--limit", type=int, default=0, help="Max bills to sync(0 = all)")
         parser.add_argument("--congress", type=int, default=119, help="Congress number")
 
     def handle(self, *args, **opts):
@@ -54,8 +54,9 @@ class Command(BaseCommand):
         #     limit=opts["limit"],
         # )
 
+        limit = opts["limit"] or None          # 0 → None → no cap
         bills, offset = [], 0
-        while len(bills) < opts["limit"]:
+        while limit is None or len(bills) < limit:
             page = client.get(f"/bill/{opts['congress']}", offset=offset, **params)
             batch = page.get("bills", [])
             if not batch:
@@ -64,17 +65,38 @@ class Command(BaseCommand):
             offset += len(batch)
             if not (page.get("pagination") or {}).get("next"):
                 break
-        bills = bills[: opts["limit"]]
+            if limit:
+                bills = bills[:limit]
 
         self.stdout.write(f"Found {len(bills)} bills updated since {since:%Y-%m-%d}")
 
-
+        skipped = 0
         for item in bills:
+            if self.unchanged(item):
+                skipped += 1
+                continue                        # no new actions → no API calls, no sleep
             try:
                 self.sync_bill(client, item)
             except requests.HTTPError as exc:
                 self.stderr.write(f"Skipped {item.get('type')} {item.get('number')}: {exc}")
             time.sleep(0.2)  # stay polite; the API allows ~5,000 requests/hour
+
+        self.stdout.write(f"Done. Synced {len(bills) - skipped}, skipped {skipped} with no new actions.")
+
+    def unchanged(self, item):
+        """True if we already have this bill and its latest action matches the listing."""
+        latest = item.get("latestAction") or {}
+        bill = (Bill.objects
+                .filter(congress=item["congress"], bill_type=item["type"].upper(), number=int(item["number"]))
+                .only("latest_action_date", "latest_action_text")
+                .first())
+        return bool(
+            bill
+            and bill.latest_action_date
+            and str(bill.latest_action_date) == latest.get("actionDate")
+            and bill.latest_action_text == latest.get("text", "")
+        )
+        
 
     def sync_bill(self, client, item):
         congress = item["congress"]
