@@ -156,7 +156,33 @@ def is_editor(user):
 
 editor_required = user_passes_test(is_editor)
 
-
 @editor_required
 def desk(request):
-    return render(request, "bills/desk.html", {})
+    rows = []
+    for score, action in top_bills(days=7, limit=12, min_score=80):
+        bill = action.bill
+        stage, _, _ = facts_as_of(bill, action.action_date)
+        newest = bill.briefs.order_by("-created_at").first()
+        approved = latest_approved(bill)
+
+        if newest and newest.status == Brief.Status.DRAFT:
+            brief_status, brief = "Draft", newest
+        elif approved:
+            brief_status, brief = "Approved", approved
+        else:
+            brief_status, brief = "", None
+
+        rows.append({
+            "bill": bill,
+            "stage": stage,
+            "pill_class": PILL_CLASSES.get(stage, ""),
+            "date": action.action_date,
+            "brief_status": brief_status,
+            "brief": brief,
+        })
+
+    return render(request, "bills/desk.html", {
+        "rows": rows,
+        "draft_count": sum(r["brief_status"] == "Draft" for r in rows),
+        "missing_count": sum(r["brief_status"] == "" for r in rows),
+    })
