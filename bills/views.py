@@ -1,6 +1,7 @@
 # Create your views here.
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.decorators import user_passes_test
 
 from .models import Bill, Brief
 from datetime import date, timedelta
@@ -149,3 +150,13 @@ def home(request):
                 "president_count": sum(c["stage"] == "Presented to President" for c in cards),
                 "approved_count": sum(c["brief"] is not None for c in cards),
             })
+
+def is_editor(user):
+    return user.is_authenticated and (user.is_superuser or user.groups.filter(name="Editors").exists())
+
+editor_required = user_passes_test(is_editor)
+
+
+@editor_required
+def desk(request):
+    return render(request, "bills/desk.html", {})
