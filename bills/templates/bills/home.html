@@ -85,7 +85,11 @@
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { font-size: 15px; font-weight: 600; padding: 6px 13px; border-radius: 999px; background: var(--blue-soft); color: var(--ink); }
     .source-note { font-size: 15px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
-    .awaiting { flex: 1; min-height: 240px; border: 2px dashed var(--line); border-radius: 14px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--muted); font-style: italic; font-size: 17px; }
+.recent { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.tl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.tl li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; font-size: 16px; line-height: 1.45; }
+.tl time { font-family: var(--mono); font-size: 14px; color: var(--muted); padding-top: 1px; }
+.pending-note { margin: 4px 0 0; font-size: 15px; font-style: italic; color: var(--muted); }
     .card:hover { border-color: var(--blue); }
     .card .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
     .billno { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--muted); }

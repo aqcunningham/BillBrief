@@ -26,7 +26,15 @@
       <div class="source-note">Based on the CRS summary of the bill as {{ c.brief.crs_version_phrase }}{% if c.brief.crs_version_date %}, {{ c.brief.crs_version_date|date:"M j, Y" }}{% endif %}.</div>
     {% endif %}
   {% else %}
-    <div class="awaiting">Brief awaiting editor review</div>
+    <div class="recent">
+      <div class="k">Recent actions</div>
+      <ul class="tl">
+        {% for a in c.recent_actions %}
+          <li><time datetime="{{ a.action_date|date:'Y-m-d' }}">{{ a.action_date|date:"M j" }}</time><span>{{ a.text|truncatechars:110 }}</span></li>
+        {% endfor %}
+      </ul>
+      <p class="pending-note">Plain-language brief coming after editor review.</p>
+    </div>
   {% endif %}
 
   <div class="latest"><b>Latest · {{ c.date|date:"M j" }}</b>{{ c.status_text }}{% if c.whats_next %} {{ c.whats_next }}{% endif %}</div>

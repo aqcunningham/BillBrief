@@ -118,6 +118,7 @@ def home(request):
             "whats_next": whats_next,
             "date": action.action_date,
             "tracker": tracker_steps(bill, action.action_date),   # new
+            "recent_action": bill.actions.filter(action_date__lte=action.action_date).order_by("-action_date")[:4],
         })
 
     # 2. Recently published briefs: newest approved brief per bill.
