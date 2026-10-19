@@ -8,6 +8,12 @@ from datetime import date, timedelta
  
 from .importance import top_bills
 from .status import facts_as_of
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.utils import timezone
+
+from .briefs import BriefError, create_draft
+from .forms import BriefReviewForm
  
 
 
@@ -186,3 +192,48 @@ def desk(request):
         "draft_count": sum(r["brief_status"] == "Draft" for r in rows),
         "missing_count": sum(r["brief_status"] == "" for r in rows),
     })
+
+@editor_required
+def desk_generate(request, bill_id):
+    """Generate button: draft a brief, then open it for review."""
+    if request.method != "POST":
+        return redirect("bills:desk")
+    bill = get_object_or_404(Bill, pk=bill_id)
+    try:
+        brief, reused = create_draft(bill)
+    except BriefError as e:
+        messages.error(request, str(e))
+        return redirect("bills:desk")
+    except Exception as e:  # network or API problem
+        messages.error(request, f"Couldn't generate a brief for {bill}: {e}")
+        return redirect("bills:desk")
+    how = "copied from the last approved brief" if reused else "written by Claude"
+    messages.success(request, f"Draft created ({how}). Check it, then approve.")
+    return redirect("bills:desk_review", brief_id=brief.id)
+
+
+@editor_required
+def desk_review(request, brief_id):
+    """Review page: edit the explanation, then approve, save or reject."""
+    brief = get_object_or_404(Brief.objects.select_related("bill", "reused_from"), pk=brief_id)
+    form = BriefReviewForm(request.POST or None, instance=brief)
+
+    if request.method == "POST" and form.is_valid():
+        brief = form.save(commit=False)
+        decision = request.POST.get("decision")
+        if decision in ("approve", "reject"):
+            brief.status = Brief.Status.APPROVED if decision == "approve" else Brief.Status.REJECTED
+            brief.reviewed_by = request.user
+            brief.reviewed_at = timezone.now()
+        brief.save()
+
+        if decision == "approve":
+            messages.success(request, f"{brief.bill} is published.")
+            return redirect("bills:desk")
+        if decision == "reject":
+            messages.success(request, f"Brief {brief.id} rejected.")
+            return redirect("bills:desk")
+        messages.success(request, "Draft saved.")
+        return redirect("bills:desk_review", brief_id=brief.id)
+
+    return render(request, "bills/desk_review.html", {"brief": brief, "form": form})

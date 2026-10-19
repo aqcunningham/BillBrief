@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Review {{ brief.bill.bill_type }} {{ brief.bill.number }} · BillBrief</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--blue:#1d4ed8;--bg:#f6f7f9}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg)}
+  .bar{display:flex;justify-content:space-between;align-items:center;padding:14px clamp(16px,2vw,32px);background:#fff;border-bottom:1px solid var(--line)}
+  .brand{font-weight:700;font-size:18px;text-decoration:none;color:var(--ink)}
+  .brand span{color:var(--muted);font-weight:500}
+  .who{display:flex;gap:12px;align-items:center;font-size:14px;color:var(--muted)}
+  .who button{background:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+  main{padding:24px clamp(16px,2vw,32px);max-width:1200px}
+  .back{color:var(--blue);text-decoration:none;font-size:14px}
+  h1{font-size:24px;margin:10px 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:15px}
+  .status{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600}
+  .status.draft{background:#fef3c7;color:#92400e}
+  .status.approved{background:#dcfce7;color:#166534}
+  .status.rejected{background:#fee2e2;color:#991b1b}
+  .grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+  .panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 4px}
+  .panel .hint{font-size:14px;color:var(--muted);margin:0 0 16px}
+  label{display:block;font-weight:600;font-size:15px;margin:16px 0 6px;color:var(--blue)}
+  textarea,input[type=text]{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:15px;line-height:1.5}
+  .help{font-size:13px;color:var(--muted);margin-top:4px}
+  .errorlist{color:#b91c1c;font-size:14px;margin:4px 0;padding-left:18px}
+  .fact{margin-bottom:14px}
+  .fact .k{font-size:13px;color:var(--muted)}
+  .fact .v{font-size:15px;margin-top:2px}
+  .note{font-size:14px;background:#f9fafb;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:12px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
+  .btn{padding:10px 18px;border-radius:8px;font-size:15px;border:0;cursor:pointer}
+  .btn.approve{background:#15803d;color:#fff}
+  .btn.save{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.reject{background:#fff;border:1px solid #fecaca;color:#b91c1c;margin-left:auto}
+  .msg{padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:15px;background:#eff6ff;color:#1e3a8a}
+  .msg.error{background:#fee2e2;color:#991b1b}
+  .msg.success{background:#dcfce7;color:#166534}
+</style></head>
+<body>
+  <header class="bar">
+    <a class="brand" href="{% url 'bills:desk' %}">BillBrief <span>· Editor desk</span></a>
+    <div class="who">
+      {{ user.username }}
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Log out</button></form>
+    </div>
+  </header>
+
+  <main>
+    <a class="back" href="{% url 'bills:desk' %}">← Back to desk</a>
+
+    {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+
+    <h1>{{ brief.bill.bill_type }} {{ brief.bill.number }} · {{ brief.bill.title }}</h1>
+    <p class="sub">
+      Brief {{ brief.id }} · <span class="status {{ brief.status }}">{{ brief.get_status_display }}</span>
+      {% if brief.reviewed_at %} · {{ brief.get_status_display }} by {{ brief.reviewed_by }} on {{ brief.reviewed_at|date:"M j, Y" }}{% endif %}
+    </p>
+
+    <div class="grid">
+      <form method="post" class="panel">
+        {% csrf_token %}
+        <h2>Explanation</h2>
+        <p class="hint">Written by AI. Edit anything that's unclear or not supported by the CRS summary.</p>
+
+        <div class="note">
+          {% if brief.reused_from %}
+            Copied from approved brief {{ brief.reused_from_id }}: the CRS summary hasn't changed since then.
+          {% else %}
+            Written fresh by {{ brief.model_name|default:"Claude" }}.
+          {% endif %}
+          {% if brief.crs_version %}<br>Source: CRS summary as {{ brief.crs_version_phrase }}{% if brief.crs_version_date %}, {{ brief.crs_version_date|date:"M j, Y" }}{% endif %}.{% endif %}
+        </div>
+
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+          {{ field.errors }}
+        {% endfor %}
+
+        <div class="actions">
+          <button class="btn approve" name="decision" value="approve">Approve &amp; publish</button>
+          <button class="btn save" name="decision" value="save">Save draft</button>
+          <button class="btn reject" name="decision" value="reject">Reject</button>
+        </div>
+      </form>
+
+      <aside class="panel">
+        <h2>Facts</h2>
+        <p class="hint">Written by code from the official actions. Shown to readers as is.</p>
+        <div class="fact"><div class="k">Stage</div><div class="v">{{ brief.stage }}</div></div>
+        <div class="fact"><div class="k">Status</div><div class="v">{{ brief.status_text }}</div></div>
+        {% if brief.whats_next %}<div class="fact"><div class="k">What's next</div><div class="v">{{ brief.whats_next }}</div></div>{% endif %}
+        <div class="fact"><div class="k">As of</div><div class="v">{{ brief.as_of|date:"M j, Y" }}</div></div>
+        <div class="fact"><div class="k">Bill page</div><div class="v"><a href="{% url 'bills:bill_detail' brief.bill.slug %}" target="_blank">Open public page ↗</a></div></div>
+      </aside>
+    </div>
+  </main>
+</body></html>
