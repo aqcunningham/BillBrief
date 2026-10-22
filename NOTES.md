@@ -9,7 +9,6 @@ AI-powered congressional bill tracker + HTML newsletter.
 - **Editor login**: `django.contrib.auth.urls` at `/accounts/`, `registration/login.html`, `LOGIN_URL` / `LOGIN_REDIRECT_URL = "/desk/"` / `LOGOUT_REDIRECT_URL = "/"`.
 ![editor login page](docs/images/editorlogin.png)
 ![editor desk](docs/images/editordesk.png)
-![](docs/images/editordesk.png)
 
 - **Editors group** + `is_editor()` / `@editor_required` (`user_passes_test`). A superuser also passes.
 - **`/desk/`**: table of the week's final-stage bills (score ≥ 80) with brief status: no brief → Generate, Draft → Review, Approved → View on site.
@@ -37,7 +36,7 @@ AI-powered congressional bill tracker + HTML newsletter.
 - Django 5+ logout requires POST → a form with a button, not a link.
 - A `forms.CharField` can override a model's `JSONField` in a `ModelForm`; `clean_<field>()` converts the text back into a list.
 
-## 2026-10-21 — Tests, editor account, navigation
+## October 19— Tests, editor account, navigation
 
 ### Built
 - **`bills/tests.py`, 12 tests, all passing** (`python manage.py test bills`):
@@ -60,6 +59,12 @@ AI-powered congressional bill tracker + HTML newsletter.
 - Approve the 14 drafts on the desk.
 - **Deploy to Railway**: production settings, Gunicorn, WhiteNoise, Postgres, env variables, then the cron service running `daily_update`.
 - GitHub Actions running `manage.py test` on every push.
+
+### Ran (manual, until the daily job is deployed)
+- `sync_bills --days 3`: caught up since Monday's sync (3 days, not 2, because the last sync was over 2 days ago).
+- `draft_briefs`: drafted briefs for the new final-stage bills; bills that already had a brief were skipped.
+- Reviewed and approved some drafts on the desk as the editor; they're now live on the bill pages and homepage cards.
+- Rule until deploy: `--days` = days since the last sync + 1; if syncing daily, just `daily_update`.
 
 ## October 16
 
