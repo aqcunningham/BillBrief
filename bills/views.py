@@ -113,7 +113,7 @@ def home(request):
 
     # 1. This week's final-stage bills (score 80+), each with its approved brief if there is one.
     cards = []
-    for score, action in top_bills(days=7, limit=12, min_score=40):
+    for score, action in top_bills(days=7, limit=50, min_score=80):
         bill = action.bill
         stage, status_text, whats_next = facts_as_of(bill, action.action_date)
         cards.append({
@@ -142,7 +142,7 @@ def home(request):
     # 3. Bell: final-stage milestones from the last 30 days, newest first. Facts only, no AI text.
     alerts = [
         {"bill": a.bill, "label": milestone_label(a.text), "date": a.action_date}
-        for _, a in top_bills(days=30, limit=5, min_score=80)
+        for _, a in top_bills(days=7, limit=15, min_score=80)
     ]
     alerts.sort(key=lambda x: x["date"], reverse=True)
 
@@ -151,6 +151,7 @@ def home(request):
         "recent": recent,
         "alerts": alerts,
         "today": today,
+        "is_editor": is_editor(request.user),
         "week_start": today - timedelta(days=7),
                 "law_count": sum(c["stage"] == "Became law" for c in cards),
                 "president_count": sum(c["stage"] == "Presented to President" for c in cards),
@@ -165,7 +166,7 @@ editor_required = user_passes_test(is_editor)
 @editor_required
 def desk(request):
     rows = []
-    for score, action in top_bills(days=7, limit=12, min_score=80):
+    for score, action in top_bills(days=7, limit=50, min_score=80):
         bill = action.bill
         stage, _, _ = facts_as_of(bill, action.action_date)
         newest = bill.briefs.order_by("-created_at").first()

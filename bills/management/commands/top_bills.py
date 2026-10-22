@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--days", type=int, default=7)
-        parser.add_argument("--limit", type=int, default=10)
+        parser.add_argument("--limit", type=int, default=20)
         parser.add_argument("--min_score", type=int, default=80)
 
     def handle(self, *args, **opts):
