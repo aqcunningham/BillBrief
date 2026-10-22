@@ -9,6 +9,7 @@ AI-powered congressional bill tracker + HTML newsletter.
 - **Editor login**: `django.contrib.auth.urls` at `/accounts/`, `registration/login.html`, `LOGIN_URL` / `LOGIN_REDIRECT_URL = "/desk/"` / `LOGOUT_REDIRECT_URL = "/"`.
 ![editor login page](docs/images/editorlogin.png)
 ![editor desk](docs/images/editordesk.png)
+![](docs/images/editordesk.png)
 
 - **Editors group** + `is_editor()` / `@editor_required` (`user_passes_test`). A superuser also passes.
 - **`/desk/`**: table of the week's final-stage bills (score ≥ 80) with brief status: no brief → Generate, Draft → Review, Approved → View on site.
