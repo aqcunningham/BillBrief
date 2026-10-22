@@ -7,8 +7,9 @@ AI-powered congressional bill tracker + HTML newsletter.
 ### Built
 - **`bills/briefs.py`**: brief generation moved out of the `generate_briefs` command into `create_draft(bill, rewrite=False)`. The command and the desk both call it. `BriefError` holds messages that are safe to show an editor.
 - **Editor login**: `django.contrib.auth.urls` at `/accounts/`, `registration/login.html`, `LOGIN_URL` / `LOGIN_REDIRECT_URL = "/desk/"` / `LOGOUT_REDIRECT_URL = "/"`.
-![editor desk](docs/images/editordesk.png)
 ![editor login page](docs/images/editorlogin.png)
+![editor desk](docs/images/editordesk.png)
+
 - **Editors group** + `is_editor()` / `@editor_required` (`user_passes_test`). A superuser also passes.
 - **`/desk/`**: table of the week's final-stage bills (score ≥ 80) with brief status: no brief → Generate, Draft → Review, Approved → View on site.
 - **`/desk/brief/<id>/`**: Review page. Edit the AI explanation (`BriefReviewForm` in `bills/forms.py`; "Who's affected" as one group per line), facts read-only, Approve & publish / Save draft / Reject. Sets `reviewed_by` and `reviewed_at`.
