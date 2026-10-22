@@ -3,6 +3,62 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 21
+### Built
+- **`bills/briefs.py`**: brief generation moved out of the `generate_briefs` command into `create_draft(bill, rewrite=False)`. The command and the desk both call it. `BriefError` holds messages that are safe to show an editor.
+- **Editor login**: `django.contrib.auth.urls` at `/accounts/`, `registration/login.html`, `LOGIN_URL` / `LOGIN_REDIRECT_URL = "/desk/"` / `LOGOUT_REDIRECT_URL = "/"`.
+![editor desk](docs/images/editordesk.png)
+![editor login page](docs/images/editorlogin.png)
+- **Editors group** + `is_editor()` / `@editor_required` (`user_passes_test`). A superuser also passes.
+- **`/desk/`**: table of the week's final-stage bills (score ≥ 80) with brief status: no brief → Generate, Draft → Review, Approved → View on site.
+- **`/desk/brief/<id>/`**: Review page. Edit the AI explanation (`BriefReviewForm` in `bills/forms.py`; "Who's affected" as one group per line), facts read-only, Approve & publish / Save draft / Reject. Sets `reviewed_by` and `reviewed_at`.
+- **Generate button**: POST → `create_draft()` → opens Review. The button turns into "Generating…" so it can't be double-clicked (each click is a paid call).
+- **`draft_briefs` command** (`draft_missing_briefs()`): drafts every final-stage bill with no brief for its latest action. Skips any bill with a brief whose `as_of` ≥ its latest action (draft, approved *or* rejected), so it never pays twice or redoes an editor's rejection.
+- **`daily_update` command**: `sync_bills --days 2` then `draft_briefs`, via `call_command`. This is what the scheduled job will run.
+
+### Bug: sync missed the Oct 15–19 bills
+- **Cause:** `sync_bills --limit` defaulted to 50. It paged correctly but stopped after 50 bills, and newly introduced bills filled those slots.
+- **Fix:** `--limit` defaults to 0 = no cap. Added `unchanged(item)`: if the bill exists and the listing's `latestAction` (date + text) matches what's saved, skip the detail and actions calls. Most "updated" bills changed something we don't track (cosponsors, text).
+- **Result:** the first full sync is slow (~2 calls per new bill); after that, most bills are skipped. 15 final-stage bills this week (10 on Oct 15, 5 on Oct 14) now match Congress.gov.
+
+### Bug: homepage said 9 presented instead of 12
+- `top_bills(... limit=12)` in `home` and `desk` cut 15 bills down to 12 before counting → changed to `limit=50`.
+
+### Decisions
+- **Automation drafts, editors publish.** Sync and drafting run on a schedule; a person always approves.
+- **Generate** is the fallback for a missed bill or a new draft; the normal path is the daily job.
+- **Run daily, including weekends:** `0 14 * * *` UTC = 7 AM Pacific, `--days 2` overlap. Weekend signings and late Congress.gov postings get caught; a quiet day costs about $0 (everything skipped, no AI calls). Weekdays-only + `--days 2` would lose Friday → Saturday updates.
+- Logic lives in `bills/*.py`; commands and views are thin wrappers (the same pattern as `importance.py`).
+
+### Learned
+- `{% url 'login' %}` and the `registration/` template folder come from Django's built-in auth views; templates go in `bills/templates/registration/`, not inside `bills/templates/bills/`.
+- Django 5+ logout requires POST → a form with a button, not a link.
+- A `forms.CharField` can override a model's `JSONField` in a `ModelForm`; `clean_<field>()` converts the text back into a list.
+
+## 2026-10-21 — Tests, editor account, navigation
+
+### Built
+- **`bills/tests.py`, 12 tests, all passing** (`python manage.py test bills`):
+  - President's deadline: Oct 5 → Oct 16; Oct 14 → Oct 26 (two Sundays skipped)
+  - Scoring: Became Public Law = 100; Presented to President = 90 (even though typed Floor); Vetoed = 90; passed one chamber < 80
+  - Desk access: logged out → login redirect; regular user → blocked; Editors group → 200
+  - Drafts stay private: draft and rejected briefs never on the public bill page; approved shows
+- **Editor account** created in admin: in the Editors group, *Staff status off*, so it can use the desk but not the admin. Superuser stays for back-office work.
+- **Navigation both ways:**
+  - Desk / Review: "View site" link; the brand turns blue on hover.
+  - Homepage nav: logged out → **Editor login**; logged in → **Editor desk** · username · **Log out** (POST form).
+  - The old Editor desk link had ended up inside the bell's `<details>` dropdown → moved between `</details>` and `</nav>`.
+
+### Learned
+- Django's test runner builds a temporary empty database and deletes it after, so real data is never touched.
+- An unsaved model instance (`Action(text=..., action_type=...)`) is enough to test pure functions like `score_action`.
+- `assertContains` / `assertNotContains` check the rendered HTML, which is the simplest way to test what readers can see.
+
+### Next
+- Approve the 14 drafts on the desk.
+- **Deploy to Railway**: production settings, Gunicorn, WhiteNoise, Postgres, env variables, then the cron service running `daily_update`.
+- GitHub Actions running `manage.py test` on every push.
+
 ## October 16
 
 ### Site structure decided
