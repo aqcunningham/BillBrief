@@ -3,6 +3,30 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 23 — Password fix, daily cron live, "signed by President" bug
+
+### Fixed: 500 error after regenerating the Postgres password
+- Regenerated in Postgres → Database → Config: the database and its variables updated, but the **web service kept the old password**. A reference variable (`${{Postgres.DATABASE_URL}}`) is filled in **at deploy time**, and Railway doesn't redeploy the services that use it.
+- Diagnosis: `psql` through the TCP proxy with the new password → `select 1` worked → the database was fine; the web service was stale → redeployed BillBrief → fixed.
+- Rule: after changing a variable other services reference, redeploy them.
+- Deleted the Postgres TCP Proxy (+ applied changes). The database is private again; the old password no longer works.
+
+### Built: daily cron on Railway
+- Service `daily` in the **same project** as BillBrief and Postgres (same repo, same 6 variables, no domain).
+- Start `python manage.py daily_update`, cron `0 14 * * *` (UTC = 7 AM Pacific), restart policy Never, no pre-deploy.
+- Test run: synced 2 days (344 bills updated since Oct 21), drafted new final-stage bills → `Daily update finished.`
+![first cron sync](docs/images/cron.png)
+
+### Mistakes and lessons
+- First created `daily` as a **separate project** → `DATABASE_URL` resolved to an empty string → `DATABASES is improperly configured`. References and the private network only work **within one project**.
+- A cron service doesn't run on deploy: a deploy only builds; the command runs at the scheduled time. To test, temporarily set the schedule a few minutes ahead, then set it back.
+- `dj_database_url.config()` silently returns `{}` when `DATABASE_URL` is missing → to do: fail loudly in settings.
+
+### Bug found: "Signed by President" not counted as law
+- HR 7022: latest action "Signed by President" (Oct 22). Congress.gov already shows Became Law; BillBrief showed "To President" because it only matched "Became Public Law No: …", which is posted days later.
+- Fix: match "signed by president" in `tracker_position`, `score_action`, `milestone_label`, and `facts_as_of`, plus a test.
+
+
 ## October 22 (evening) — Deployed to Railway 🚀
 
 ### Live
@@ -78,7 +102,6 @@ AI-powered congressional bill tracker + HTML newsletter.
 - Railway account (sign in with GitHub).
 - Production settings, Gunicorn, WhiteNoise, Railway Postgres, env variables (API keys go in Railway, never in code).
 - Cron service: `python manage.py daily_update` at `0 14 * * *` (7 AM Pacific, every day).
-- Then GitHub Actions CI and the README → live link to Jehan and Tak.
 
 - `.env` ignored (`git check-ignore -v .env` → `.gitignore` line 153), never tracked, never in history → no keys to regenerate.
 - Added `.env.example` with variable names only.
