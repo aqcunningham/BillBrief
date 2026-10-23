@@ -3,6 +3,37 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
+## October 22— Homepage cards, nav, views cleanup
+
+### Built
+- **Recent actions on unapproved cards**: a card without an approved brief now shows the bill's last 4 actions (date + text, newest first) and "Plain-language brief coming after editor review." It replaced the empty dashed "awaiting" box.
+  - View: `"recent_actions": bill.actions.filter(action_date__lte=action.action_date).order_by("-action_date", "-id")[:4]` in each card.
+  - `action_date__lte` keeps the list consistent with the card's milestone; `"-id"` breaks ties between same-day actions.
+  - `_card.html`: `.recent` block in the `{% else %}` branch, `<time datetime="…">` for accessibility; CSS `.recent`, `.tl`, `.tl li`, `.tl time`, `.pending-note`; `.awaiting` removed.
+- **Bell**: now counts final-stage milestones from the **last 7 days** (it was 30), so the number matches "This week" instead of a total that never goes down.
+- **Nav `draft_count`**: number of drafts waiting, shown next to Editor desk for editors.
+
+### Fixed
+- `recent_action` (singular) in the view vs `c.recent_actions` in the template → renamed. A mismatched name fails *silently* (empty list, no error).
+- `draft_count` was inside each card's dict → moved to the page's `render(...)` dict. Card dict = facts about one bill (`c.…`); render dict = things for the whole page.
+
+### Cleanup (views.py)
+- Merged and sorted the imports (standard library → Django → app).
+- Removed leftover comments and the commented-out old line; fixed comments that no longer matched the code (30 → 7 days; "awaiting" → recent actions).
+- `is_editor(request.user)` computed once in `home` instead of twice.
+
+### Decisions
+- **Checkpoint 4 is done for version 1.** Briefs feed filters and member one-pagers move to after deploy; with 15–20 bills a week there's nothing to filter yet, and they make good "what I added since" updates.
+- Account menu (avatar dropdown) in the nav: optional polish, not a blocker.
+- Known difference: the homepage `draft_count` counts all drafts; the desk counts this week's only. Reject stale drafts in the admin if the numbers differ.
+
+### Next: deploy (Checkpoint 5)
+- Push everything to GitHub; confirm `.env` is in `.gitignore`.
+- Railway account (sign in with GitHub).
+- Production settings, Gunicorn, WhiteNoise, Railway Postgres, env variables (API keys go in Railway, never in code).
+- Cron service: `python manage.py daily_update` at `0 14 * * *` (7 AM Pacific, every day).
+- Then GitHub Actions CI and the README → live link to Jehan and Tak.
+______________
 ## October 21
 ### Built
 - **`bills/briefs.py`**: brief generation moved out of the `generate_briefs` command into `create_draft(bill, rewrite=False)`. The command and the desk both call it. `BriefError` holds messages that are safe to show an editor.
