@@ -141,11 +141,21 @@
       .stat b { font-size: 40px; }
       .card h3 { font-size: 24px; }
     }
-    
-    nav .user { color: var(--ink); font-size: 15px; }
-    nav .logout { margin: 0; }
-    nav .logout button { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer; }
-    nav .logout button:hover { color: var(--ink); }
+    .account { position: relative; }
+    .account summary { list-style: none; cursor: pointer; }
+    .account summary::-webkit-details-marker { display: none; }
+    .avatar { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+              background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; }
+    .account .panel { position: absolute; right: 0; top: 44px; min-width: 200px; background: #fff;
+                      border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px #0002;
+                      padding: 8px; z-index: 20; display: grid; gap: 2px; }
+    .account .who { padding: 8px 10px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+    .account .panel a, .account .panel button { display: flex; justify-content: space-between; align-items: center;
+                      padding: 8px 10px; border-radius: 6px; font: inherit; font-size: 15px; color: var(--ink);
+                      text-decoration: none; background: none; border: 0; text-align: left; width: 100%; cursor: pointer; }
+    .account .panel a:hover, .account .panel button:hover { background: #f3f4f6; }
+    .account form { margin: 0; }
+    .account .count { background: #fef3c7; color: #92400e; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -174,10 +184,19 @@
             <!-- {% if is_editor %}<a href="{% url 'bills:desk' %}">Editor desk</a>{% endif %} -->
           </div>
         </details>
-                {% if user.is_authenticated %}
-          {% if is_editor %}<a href="{% url 'bills:desk' %}">Editor desk</a>{% endif %}
-          <span class="user">{{ user.username }}</span>
-          <form method="post" action="{% url 'logout' %}" class="logout">{% csrf_token %}<button>Log out</button></form>
+        {% if user.is_authenticated %}
+          <details class="account">
+            <summary aria-label="Account menu">
+              <span class="avatar">{{ user.username|slice:":2"|upper }}</span>
+            </summary>
+            <div class="panel">
+              <div class="who">{{ user.username }}</div>
+              {% if is_editor %}
+                <a href="{% url 'bills:desk' %}">Editor desk{% if draft_count %} <span class="count">{{ draft_count }}</span>{% endif %}</a>
+              {% endif %}
+              <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Log out</button></form>
+            </div>
+          </details>
         {% else %}
           <a href="{% url 'login' %}">Editor login</a>
         {% endif %}

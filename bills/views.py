@@ -126,6 +126,7 @@ def home(request):
             "date": action.action_date,
             "tracker": tracker_steps(bill, action.action_date),   # new
             "recent_action": bill.actions.filter(action_date__lte=action.action_date).order_by("-action_date")[:4],
+                    "draft_count": Brief.objects.filter(status=Brief.Status.DRAFT).count() if is_editor(request.user) else 0,
         })
 
     # 2. Recently published briefs: newest approved brief per bill.
