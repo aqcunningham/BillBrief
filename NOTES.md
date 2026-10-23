@@ -33,6 +33,9 @@ AI-powered congressional bill tracker + HTML newsletter.
 - Production settings, Gunicorn, WhiteNoise, Railway Postgres, env variables (API keys go in Railway, never in code).
 - Cron service: `python manage.py daily_update` at `0 14 * * *` (7 AM Pacific, every day).
 - Then GitHub Actions CI and the README → live link to Jehan and Tak.
+
+- `.env` ignored (`git check-ignore -v .env` → `.gitignore` line 153), never tracked, never in history → no keys to regenerate.
+- Added `.env.example` with variable names only.
 ______________
 ## October 21
 ### Built
