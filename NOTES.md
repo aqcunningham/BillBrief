@@ -3,7 +3,53 @@
 AI-powered congressional bill tracker + HTML newsletter.
 
 ---
-## October 22— Homepage cards, nav, views cleanup
+## October 22 (evening) — Deployed to Railway 🚀
+
+### Live
+- Live at `https://billbrief-production.up.railway.app/` (homepage, bill pages, editor desk).
+- Railway project: **BillBrief** service (web) + **Postgres**. The `daily` cron service is next.
+
+### Code changes for production
+- `pipenv install gunicorn whitenoise`; `pipenv requirements > requirements.txt`; `.python-version` = `3.13`.
+- `settings.py`:
+  - `CSRF_TRUSTED_ORIGINS` built from `ALLOWED_HOSTS` (https), `SECURE_PROXY_SSL_HEADER` (Railway terminates HTTPS in front of the app)
+  - `SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE = not DEBUG`
+  - `WhiteNoiseMiddleware` right after `SecurityMiddleware`; `STATIC_ROOT = BASE_DIR / "staticfiles"`; `CompressedManifestStaticFilesStorage`
+  - `dj_database_url.config(conn_max_age=600, conn_health_checks=True)`
+- Tested locally first: `collectstatic` (157 files) + `gunicorn config.wsgi --bind 127.0.0.1:8001` (8000 was taken by runserver).
+- Secrets check before pushing: `.env` ignored, never tracked, never in git history; added `.env.example` (names only).
+
+### Railway setup
+- New Project → Deploy from GitHub repo → BillBrief; + Create → Database → PostgreSQL.
+- Web service variables: `DATABASE_URL = ${{Postgres.DATABASE_URL}}` (a **reference**, so it updates itself if the password changes), a **new** `DJANGO_SECRET_KEY` (not the local one), `DJANGO_DEBUG=False`, `DJANGO_ALLOWED_HOSTS=<domain>`, both API keys.
+- Settings → Deploy:
+  - Pre-deploy: `python manage.py migrate` (tables update on every deploy)
+  - Start: `python manage.py collectstatic --noinput && gunicorn config.wsgi --bind 0.0.0.0:$PORT`
+- Networking → Generate Domain. `*.railway.internal` is the **private** address (services only), not a public site.
+
+### Problems and fixes
+- **Port mismatch:** the domain targeted 8000, Gunicorn listened on Railway's default `$PORT` 8080 → set the domain's target port to 8080.
+- **Empty production database** → copied the local data over:
+  - `loaddata` over the internet was too slow (one row per round trip; stopped after 40+ min, nothing saved since it's one transaction).
+  - ✅ Bulk copy with Postgres's own tools from the Docker container, done in under a minute:
+    `docker exec billbrief-db-1 pg_dump -U billbrief -d billbrief --clean --if-exists --no-owner --no-acl | docker exec -i billbrief-db-1 psql "$PROD_DB"`
+- **Reaching Railway Postgres from the laptop:** needs a **TCP Proxy** (public host:port). Gotchas:
+  - `DATABASE_PUBLIC_URL` appears only once the proxy exists, and the proxy only activates after **applying staged changes** (Deploy banner).
+  - The variable editor shows the template (`${{PGUSER}}…`), not the value; I built the URL from the pieces: user, password, proxy domain:port, database.
+  - `postgres.railway.internal:5432` doesn't resolve from a laptop; the proxy host is `*.proxy.rlwy.net:<port>`, not 5432.
+  - Public endpoint = egress fees; fine for a one-time import, never for the app itself.
+
+### Learned
+- Two databases from now on: running `sync_bills` locally updates **only local**; the live site updates via the cron on Railway.
+- `&&` runs the second command only if the first succeeded.
+- `--bind 0.0.0.0:$PORT` = listen on every address on Railway's port; the default `127.0.0.1` would only accept connections from inside the container.
+
+### To do (tomorrow)
+- Cleanup: delete the Postgres TCP Proxy; regenerate the Postgres password; `rm data.json`; `unset PROD_DB`.
+- `daily` cron service: same repo, same variables (minus `PORT`), start `python manage.py daily_update`, cron `0 14 * * *` (UTC = 7 AM Pacific), restart policy Never, no domain → test run → check logs.
+- README (live link, screenshots, "How I built this with Claude Code"), GitHub Actions CI.
+
+## October 22 — Homepage cards, nav, views cleanup
 
 ### Built
 - **Recent actions on unapproved cards**: a card without an approved brief now shows the bill's last 4 actions (date + text, newest first) and "Plain-language brief coming after editor review." It replaced the empty dashed "awaiting" box.
