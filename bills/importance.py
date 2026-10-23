@@ -16,7 +16,8 @@ TYPE_SCORES = {
 def score_action(action):
     """How important is one action? Everything else is paperwork (5)."""
     t = action.text.lower()
-    if "became public law" in t:
+    # if "became public law" in t:
+    if "became public law" in t or "signed by president" in t:
         return 100
     if "presented to president" in t:
         return 90

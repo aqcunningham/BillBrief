@@ -30,7 +30,7 @@ def tracker_position(bill, as_of=None):
     def any_has(*phrases):
         return any(p in t for t in texts for p in phrases)
 
-    if any_has("became public law"):
+    if any_has("became public law", "signed by president"):
         return 4
     if any_has("presented to president", "vetoed"):
         return 3
@@ -90,7 +90,7 @@ PILL_CLASSES = {"Became law": "law", "Vetoed": "veto"}
 def milestone_label(text):
     """Short bell label for a final-stage action."""
     t = text.lower()
-    if "became public law" in t:
+    if "became public law" in t or "signed by president" in t:
         return "Became law"
     if "vetoed" in t:
         return "Vetoed"

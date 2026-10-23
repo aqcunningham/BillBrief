@@ -28,6 +28,9 @@ class ScoringTests(TestCase):
 
     def test_became_law_is_100(self):
         self.assertEqual(self.score("Became Public Law No: 119-121.", "President"), 100)
+        
+    def test_signed_by_president_counts_as_law(self):
+            self.assertEqual(self.score("Signed by President.", "President"), 100)
 
     def test_presented_to_president_is_90_even_though_typed_floor(self):
         self.assertEqual(self.score("Presented to President.", "Floor"), 90)
@@ -38,6 +41,7 @@ class ScoringTests(TestCase):
     def test_passed_one_chamber_is_below_the_80_cutoff(self):
         self.assertLess(self.score("Passed Senate without amendment by Unanimous Consent.", "Floor"), 80)
 
+    
 
 class DeskAccessTests(TestCase):
     """Only editors can open the desk."""
