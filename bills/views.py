@@ -1,21 +1,16 @@
-# Create your views here.
-from django.http import Http404
-from django.shortcuts import get_object_or_404, render
-from django.contrib.auth.decorators import user_passes_test
-
-from .models import Bill, Brief
 from datetime import date, timedelta
- 
-from .importance import top_bills
-from .status import facts_as_of
+
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.contrib.auth.decorators import user_passes_test
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .briefs import BriefError, create_draft
 from .forms import BriefReviewForm
- 
-
+from .importance import top_bills
+from .models import Bill, Brief
+from .status import facts_as_of
 
 def parse_slug(slug):
     """'119-s-283' -> (119, 'S', 283)."""
@@ -118,15 +113,15 @@ def home(request):
         stage, status_text, whats_next = facts_as_of(bill, action.action_date)
         cards.append({
             "bill": bill,
-            "brief": latest_approved(bill),   # None -> card says "awaiting editor review"
+            "brief": latest_approved(bill),
             "stage": stage,
             "pill_class": PILL_CLASSES.get(stage, ""),
             "status_text": status_text,
             "whats_next": whats_next,
             "date": action.action_date,
             "tracker": tracker_steps(bill, action.action_date),   # new
-            "recent_action": bill.actions.filter(action_date__lte=action.action_date).order_by("-action_date")[:4],
-                    "draft_count": Brief.objects.filter(status=Brief.Status.DRAFT).count() if is_editor(request.user) else 0,
+            # "recent_actions": bill.actions.filter(action_date__lte=action.action_date).order_by("-action_date")[:4],
+            "recent_actions": bill.actions.filter(action_date__lte=action.action_date).order_by("-action_date", "-id")[:4],
         })
 
     # 2. Recently published briefs: newest approved brief per bill.
@@ -140,25 +135,25 @@ def home(request):
         if len(recent) == 10:
             break
 
-    # 3. Bell: final-stage milestones from the last 30 days, newest first. Facts only, no AI text.
     alerts = [
         {"bill": a.bill, "label": milestone_label(a.text), "date": a.action_date}
         for _, a in top_bills(days=7, limit=15, min_score=80)
     ]
     alerts.sort(key=lambda x: x["date"], reverse=True)
 
+    editor = is_editor(request.user)
     return render(request, "bills/home.html", {
         "cards": cards,
         "recent": recent,
         "alerts": alerts,
         "today": today,
-        "is_editor": is_editor(request.user),
         "week_start": today - timedelta(days=7),
-                "law_count": sum(c["stage"] == "Became law" for c in cards),
-                "president_count": sum(c["stage"] == "Presented to President" for c in cards),
-                "approved_count": sum(c["brief"] is not None for c in cards),
-            })
-
+        "law_count": sum(c["stage"] == "Became law" for c in cards),
+        "president_count": sum(c["stage"] == "Presented to President" for c in cards),
+        "approved_count": sum(c["brief"] is not None for c in cards),
+        "is_editor": editor,
+        "draft_count": Brief.objects.filter(status=Brief.Status.DRAFT).count() if editor else 0,
+    })
 def is_editor(user):
     return user.is_authenticated and (user.is_superuser or user.groups.filter(name="Editors").exists())
 
