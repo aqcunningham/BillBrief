@@ -2,7 +2,7 @@
 
 **Plain-language briefs on bills that just reached the President or became law, drafted by Claude, approved by an editor.**
 
-🔗 **Live: [https://YOUR-DOMAIN.up.railway.app](https://YOUR-DOMAIN.up.railway.app)**
+🔗 **Live: [https://billbrief-production.up.railway.app](https://billbrief-production.up.railway.app)**
 
 Every morning, BillBrief syncs new congressional actions from the Congress.gov API, finds the bills that reached a final stage, and drafts a brief for each. Code writes the facts. Claude writes only the explanation. Nothing is published until an editor approves it.
 
